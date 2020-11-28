@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+  <persistence-unit name="com.payment_pay_jar_0.0.1-SNAPSHOTPU" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <class>com.payment.pay.entitybd.Tokenom</class>
+    <class>com.payment.pay.entitybd.Test</class>
+    <class>com.payment.pay.entitybd.Partenaire</class>
+    <class>com.payment.pay.entitybd.Souscriptions</class>
+    <class>com.payment.pay.entitybd.Clients</class>
+    <class>com.payment.pay.entitybd.Services</class>
+    <class>com.payment.pay.entitybd.Api</class>
+    <class>com.payment.pay.entitybd.Number</class>
+    <class>com.payment.pay.entitybd.Tabletest</class>
+    <class>com.payment.pay.entitybd.Transtatus</class>
+    <class>com.payment.pay.entitybd.Infopayment</class>
+    <properties>
+      <property name="javax.persistence.jdbc.url" value="jdbc:mysql://192.168.40.42:5785/perfectpay?zeroDateTimeBehavior=convertToNull"/>
+      <property name="javax.persistence.jdbc.user" value="administrator"/>
+      <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/>
+      <property name="javax.persistence.jdbc.password" value="system"/>
+    </properties>
+  </persistence-unit>
+</persistence>
