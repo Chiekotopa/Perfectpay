@@ -696,13 +696,23 @@ public class MobilPayService {
     public HashMap pay(@RequestBody InfoPayPapal infoPayPapal) {
         HashMap<String, String> lienpay = new HashMap<String, String>();
 
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("0")) {
-            System.out.println(infoPayPapal.getCodeClient() + " " + infoPayPapal.getCodeApi() + " " + infoPayPapal.getProjet());
-            lienpay.put("redirect", "Bad informations");
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
+            
+            lienpay.put("redirect", "-2");
+            return lienpay;
+        }
+          if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
+            
+            lienpay.put("redirect", "-3");
+            return lienpay;
+        }
+           if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
+            
+            lienpay.put("redirect", "-4");
             return lienpay;
         }
         String cancelUrl = infoPayPapal.getUrl_cancel();
-        String successUrl = "http://154.72.148.105:8081/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
+        String successUrl = "http://192.168.40.221:8080/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
                 + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount() + "";
         try {
@@ -773,9 +783,17 @@ public class MobilPayService {
         HttpHeaders headers = new HttpHeaders();
 
         HttpEntity<InfoPayPapal> entity = new HttpEntity<>(infoPayPapal, headers);
-        if (verifClient(ipp.getCodeClient(), ipp.getCodeApi(), ipp.getProjet()).equals("0")) {
+        if (verifClient(ipp.getCodeClient(), ipp.getCodeApi(), ipp.getProjet()).equals("-2")) {
 
-            return "-1";
+            return "-2";
+        }
+        if (verifClient(ipp.getCodeClient(), ipp.getCodeApi(), ipp.getProjet()).equals("-3")) {
+
+            return "-3";
+        }
+         if (verifClient(ipp.getCodeClient(), ipp.getCodeApi(), ipp.getProjet()).equals("-3")) {
+
+            return "-4";
         }
         try {
 
