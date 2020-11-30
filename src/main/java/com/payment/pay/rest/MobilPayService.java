@@ -129,8 +129,6 @@ public class MobilPayService {
 
     private RequestHeader requestHeader;
 
-   
-
     private Logger log = LoggerFactory.getLogger(getClass());
 
     public Token getToken() {
@@ -165,7 +163,6 @@ public class MobilPayService {
 
     }
 
-    
     public String verifClient(String telephone, String CodeApi, String Projet) {
         Clients clients = new Clients();
         Services services = new Services();
@@ -174,7 +171,7 @@ public class MobilPayService {
 
         if (clientRepository.findByTelephone(telephone) == null) {
             System.out.println("telephone n'existe pas");
-            return "0";
+            return "-2";
         } else {
             clients = clientRepository.findByTelephone(telephone);
         }
@@ -182,19 +179,19 @@ public class MobilPayService {
 
         if (souscriptionRepository.findSouscriptByIndexClientEtServices(services.getServicesPK().getIndexe(), clients.getClientsPK().getIndexe()) == null) {
             System.out.println("le Client n'a pas souscrit");
-            return "0";
+            return "-3";
         } else {
             souscriptions = souscriptionRepository.findSouscriptByIndexClientEtServices(services.getServicesPK().getIndexe(), clients.getClientsPK().getIndexe());
         }
 
         if (apiRepository.findApiByCodeapiIndexapi(clients.getClientsPK().getIndexe(), CodeApi, Projet) == null) {
             System.out.println("CodeClient, CodeApi,Projet ne correspondent pas");
-            return "0";
+            return "-4";
         } else {
             api = apiRepository.findApiByCodeapiIndexapi(clients.getClientsPK().getIndexe(), CodeApi, Projet);
         }
 
-        return "1";
+        return "-5";
     }
 
     //Paiement Orange-Money --------------------------------//
@@ -223,8 +220,17 @@ public class MobilPayService {
             System.out.println(curentdate + " " + dateExpire);
         }
 
-        if (verifClient(Telephone, codeApi, nomProjet).equals("0")) {
-            infoPayOrange.setMessage("Mauvaises informations du client");
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-2")) {
+            infoPayOrange.setMessage("-2");
+            return infoPayOrange;
+        }
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-3")) {
+            infoPayOrange.setMessage("-3");
+            return infoPayOrange;
+        }
+
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-4")) {
+            infoPayOrange.setMessage("-4");
             return infoPayOrange;
         }
         if (!"ORANGE".equals(operateur)) {
@@ -306,8 +312,17 @@ public class MobilPayService {
             System.out.println(curentdate + " " + dateExpire);
         }
 
-        if (verifClient(Telephone, codeApi, nomProjet).equals("0")) {
-            infoPayOrange.setMessage("Mauvaises informations du client");
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-2")) {
+            infoPayOrange.setMessage("-2");
+            return infoPayOrange;
+        }
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-3")) {
+            infoPayOrange.setMessage("-3");
+            return infoPayOrange;
+        }
+
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-4")) {
+            infoPayOrange.setMessage("-4");
             return infoPayOrange;
         }
         if (!"ORANGE".equals(operateur)) {
@@ -467,9 +482,18 @@ public class MobilPayService {
         monetbil.setAmount(amount);
         String url = "https://api.monetbil.com/payment/v1/placePayment";
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-2")) {
 
-        if (verifClient(phonenumber, codeApi, nomProjet).equals("0")) {
-            return "Mauvaises informations du client";
+            return "-2";
+        }
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-3")) {
+            
+            return "-3";
+        }
+
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-4")) {
+
+            return "-4";
         }
         if (!"MTN".equals(operateur.toUpperCase())) {
             return "Opérateur ne correspond pas";
@@ -533,8 +557,18 @@ public class MobilPayService {
         String url = "https://api.monetbil.com/payment/v1/placePayment";
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
 
-        if (verifClient(phonenumber, codeApi, nomProjet).equals("0")) {
-            return "Mauvaises informations du client";
+      if (verifClient(codeClient, codeApi, nomProjet).equals("-2")) {
+
+            return "-2";
+        }
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-3")) {
+            
+            return "-3";
+        }
+
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-4")) {
+
+            return "-4";
         }
         if (!"MTN".equals(operateur.toUpperCase())) {
             return "Opérateur ne correspond pas";
@@ -579,8 +613,7 @@ public class MobilPayService {
         return "";
 
     }
-    
-    
+
     public String checkPaiement(String paymentId) throws JSONException, ProtocolException, IOException {
 
         String urlCheck = "https://api.monetbil.com/payment/v1/checkPayment";//placePayment";checkPayment
@@ -662,16 +695,16 @@ public class MobilPayService {
     @RequestMapping(method = RequestMethod.POST, value = "paypal")
     public HashMap pay(@RequestBody InfoPayPapal infoPayPapal) {
         HashMap<String, String> lienpay = new HashMap<String, String>();
-        
-         if (verifClient(infoPayPapal.getCodeClient(),infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("0")) { 
-             System.out.println(infoPayPapal.getCodeClient()+" "+infoPayPapal.getCodeApi()+" "+infoPayPapal.getProjet());
-              lienpay.put("redirect", "Bad informations");
-             return lienpay;
-         }
+
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("0")) {
+            System.out.println(infoPayPapal.getCodeClient() + " " + infoPayPapal.getCodeApi() + " " + infoPayPapal.getProjet());
+            lienpay.put("redirect", "Bad informations");
+            return lienpay;
+        }
         String cancelUrl = infoPayPapal.getUrl_cancel();
-        String successUrl = "http://154.72.148.105:8081/Perfectpay/rest/api/paiement/ConfirmPay?url_return="+infoPayPapal.getUrl_return()+
-                "&codeClient="+infoPayPapal.getCodeClient()+"&codeApi="+infoPayPapal.getCodeApi()+"&Projet="+infoPayPapal.getProjet()+
-                "&moyenTransaction="+infoPayPapal.getMoyenTransaction()+"&compteClient="+infoPayPapal.getCompteClient()+"&cancel_url="+infoPayPapal.getUrl_cancel()+"&amount="+infoPayPapal.getAmount()+"";
+        String successUrl = "http://154.72.148.105:8081/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
+                + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
+                + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount() + "";
         try {
             Payment payment = paypalService.createPayment(
                     infoPayPapal.getAmount(),
@@ -692,20 +725,21 @@ public class MobilPayService {
         }
         lienpay.put("redirect", "empty");
         return lienpay;
-        
+
     }
-     @RequestMapping(method = RequestMethod.GET, value = "ConfirmPay")
-    public String successPay(@RequestParam("url_return") String url_return,@RequestParam("codeClient") String codeClient,
-            @RequestParam("codeApi") String codeApi,@RequestParam("Projet") String Projet,@RequestParam("moyenTransaction") String moyenTransaction,
+
+    @RequestMapping(method = RequestMethod.GET, value = "ConfirmPay")
+    public String successPay(@RequestParam("url_return") String url_return, @RequestParam("codeClient") String codeClient,
+            @RequestParam("codeApi") String codeApi, @RequestParam("Projet") String Projet, @RequestParam("moyenTransaction") String moyenTransaction,
             @RequestParam("compteClient") String compteClient, @RequestParam("cancel_url") String cancel_url,
             @RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId, @RequestParam("amount") Double amount) {
         InfoPayOrange payOrange = new InfoPayOrange();
-         RestTemplate restTemplate = new RestTemplate();
-         InfoPayPapal infoPayPapal =new InfoPayPapal();
-          HttpHeaders headers = new HttpHeaders();
-         
-          HttpEntity<InfoPayPapal> entity = new HttpEntity<>(infoPayPapal, headers);
-         
+        RestTemplate restTemplate = new RestTemplate();
+        InfoPayPapal infoPayPapal = new InfoPayPapal();
+        HttpHeaders headers = new HttpHeaders();
+
+        HttpEntity<InfoPayPapal> entity = new HttpEntity<>(infoPayPapal, headers);
+
         try {
 
             Payment payment = paypalService.executePayment(paymentId, payerId);
@@ -713,38 +747,36 @@ public class MobilPayService {
 
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
-                  System.out.print(codeApi);
-                   String urls = "http://154.72.148.105/apipayment/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet + ""
-                            + "&Montant=" + amount + "&MoyenTransaction=" + moyenTransaction+ "&Compte_client=" + compteClient + "";
+                System.out.print(codeApi);
+                String urls = "http://154.72.148.105/apipayment/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet + ""
+                        + "&Montant=" + amount + "&MoyenTransaction=" + moyenTransaction + "&Compte_client=" + compteClient + "";
 
-                    ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
-                    System.out.println(response);
+                ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
+                System.out.println(response);
                 return "redirect:" + url_return;
 
             }
         } catch (PayPalRESTException e) {
             log.error(e.getMessage());
         }
-        return "redirect:" +cancel_url;
+        return "redirect:" + cancel_url;
     }
-    
-    
- //**********************************Pour autre Developpeurs voulant intégré paypal
-     
+
+    //**********************************Pour autre Developpeurs voulant intégré paypal
     @ResponseBody
     @RequestMapping(method = RequestMethod.GET, value = "checkPaypal")
     public String checkPaypa(@RequestBody InfoPayPapal ipp,
             @RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId) {
         InfoPayOrange payOrange = new InfoPayOrange();
-         RestTemplate restTemplate = new RestTemplate();
-         InfoPayPapal infoPayPapal =new InfoPayPapal();
-          HttpHeaders headers = new HttpHeaders();
-         
-          HttpEntity<InfoPayPapal> entity = new HttpEntity<>(infoPayPapal, headers);
-          if (verifClient(ipp.getCodeClient(),ipp.getCodeApi(), ipp.getProjet()).equals("0")) {          
-             
-             return "-1";
-         }
+        RestTemplate restTemplate = new RestTemplate();
+        InfoPayPapal infoPayPapal = new InfoPayPapal();
+        HttpHeaders headers = new HttpHeaders();
+
+        HttpEntity<InfoPayPapal> entity = new HttpEntity<>(infoPayPapal, headers);
+        if (verifClient(ipp.getCodeClient(), ipp.getCodeApi(), ipp.getProjet()).equals("0")) {
+
+            return "-1";
+        }
         try {
 
             Payment payment = paypalService.executePayment(paymentId, payerId);
@@ -752,13 +784,13 @@ public class MobilPayService {
 
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
-                  System.out.print(ipp.getCodeApi());
-                   String urls = "http://154.72.148.105/apipayment/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + ipp.getCodeClient() +
-                           "&CodeAPI=" + ipp.getCodeApi() + "&Projet=" + ipp.getProjet() + ""
-                            + "&Montant=" + ipp.getAmount() + "&MoyenTransaction=" + ipp.getMoyenTransaction()+ "&Compte_client=" + ipp.getCompteClient() + "";
+                System.out.print(ipp.getCodeApi());
+                String urls = "http://154.72.148.105/apipayment/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + ipp.getCodeClient()
+                        + "&CodeAPI=" + ipp.getCodeApi() + "&Projet=" + ipp.getProjet() + ""
+                        + "&Montant=" + ipp.getAmount() + "&MoyenTransaction=" + ipp.getMoyenTransaction() + "&Compte_client=" + ipp.getCompteClient() + "";
 
-                    ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
-                    System.out.println(response);
+                ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
+                System.out.println(response);
                 return "1";
 
             }
@@ -768,12 +800,6 @@ public class MobilPayService {
         return "0";
     }
 
-
-    
-    
-    
-    
-    
 //    @RequestMapping(value = "/stripePayment/{paymentId}/{amount}", method = RequestMethod.GET)
 //    public String stripePayment(@PathVariable("paymentId") String paymentId, @PathVariable("amount") String amount) throws StripeException {
 //
@@ -821,10 +847,10 @@ public class MobilPayService {
 //            if (client.getCustomerID() == null) {
 //                return Response.ok(-4).build();
 //            }
- 
+
             this.stub = new AllServicesStub();
             this.requestHeader = (RequestHeader) getTestObject(RequestHeader.class);
-      
+
             BaseRequestHeader brh = new BaseRequestHeader();
             brh.setSecurityToken("UBCMKAKOTELq2ervuih1397fh1095437fh139pgv");
             brh.setRequestID("201");

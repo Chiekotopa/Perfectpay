@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.payment</groupId>
-    <artifactId>pay</artifactId>
+    <artifactId>jar</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>perfectpay</name>
     <description>Perfectpay project for Spring Boot</description>
@@ -174,5 +174,5 @@
             </plugin>
         </plugins>
     </build>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 </project>
