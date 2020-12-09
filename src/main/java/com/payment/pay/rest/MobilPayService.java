@@ -712,18 +712,21 @@ public class MobilPayService {
             return lienpay;
         }
         String cancelUrl = infoPayPapal.getUrl_cancel();
-        String successUrl = "http://192.168.40.221:8080/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
+        String successUrl = "http://154.72.148.105:8082/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
                 + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount() + "";
+                           System.out.println(infoPayPapal.getAmount());
+
         try {
             Payment payment = paypalService.createPayment(
-                    infoPayPapal.getAmount(),
+                    5.5,                  
                     "USD",
                     PaypalPaymentMethod.paypal,
                     PaypalPaymentIntent.sale,
                     "payment description",
                     cancelUrl,
                     successUrl);
+            
             for (Links links : payment.getLinks()) {
                 if (links.getRel().equals("approval_url")) {
                     lienpay.put("redirect", links.getHref());
