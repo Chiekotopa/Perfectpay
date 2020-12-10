@@ -294,6 +294,10 @@ public class MobilPayService {
             @PathVariable(value = "Telephone") String Telephone,
             @PathVariable(value = "amount") String amount, @PathVariable(value = "compteClient") String compteClient,
             @PathVariable(value = "operateur") String operateur, @RequestBody Pojo pojo) {
+        try {
+            
+        } catch (Exception e) {
+        }
         Transtatus transtatus = new Transtatus();
         InfoPayOrange infoPayOrange = new InfoPayOrange();
         Infopayment infopayment = new Infopayment();
@@ -438,8 +442,8 @@ public class MobilPayService {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/getStatusRecharge/{paytoken}", method = RequestMethod.GET)
-    public String getStatusRecharge(@PathVariable(value = "paytoken") String paytoken, @PathVariable(value = "compteClient") String compteClient) {
+    @RequestMapping(value = "/checkPayment/{paytoken}", method = RequestMethod.GET)
+    public String getStatusRecharge(@PathVariable(value = "paytoken") String paytoken) {
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://api.orange.com/orange-money-webpay/cm/v1/transactionstatus";
         Transtatus transtatus = new Transtatus();
@@ -600,6 +604,7 @@ public class MobilPayService {
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    return e.getMessage();
                 }
 
                 return etat;
@@ -1063,4 +1068,41 @@ public class MobilPayService {
 //            //this.em.getTransaction().commit();
 //            return 0;
 //        }
+    
+    
+    
+    
+    
+     @ResponseBody
+    @RequestMapping(value = "/testGet", method = RequestMethod.GET)
+    public HashMap TestGet() {
+       HashMap hashMap=new HashMap();
+         try {
+         hashMap.put("message", "Get Request");
+         hashMap.put("Status", "OK");
+         } catch (Exception e) {
+              hashMap.put("message", "Get Request");
+                hashMap.put("Status", e.getMessage());
+             return hashMap;
+         }
+      
+        return hashMap;
+    }
+    
+     @ResponseBody
+    @RequestMapping(value = "/testPost", method = RequestMethod.POST)
+    public HashMap getTestPost() {
+       HashMap hashMap=new HashMap();
+         try {
+         hashMap.put("message", "Post Request");
+         hashMap.put("Status", "OK");
+         } catch (Exception e) {
+              hashMap.put("message", "Post Request");
+                hashMap.put("Status", e.getMessage());
+             return hashMap;
+         }
+      
+        return hashMap;
+    }
+
 }
