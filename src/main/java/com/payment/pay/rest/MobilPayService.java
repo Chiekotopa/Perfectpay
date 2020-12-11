@@ -918,96 +918,97 @@ public class MobilPayService {
     }
 
 ////// 
-//    @RequestMapping(value = "fundTransfertToCard/{userId}/{paymentType}/{amount}/{toCustomerId}/{currencyCode}/{last4Digits}", method = RequestMethod.GET)
-//    public Integer fundTransfertToCard(@PathVariable("userId") Integer userId, @PathVariable("paymentType") String paymentType, @PathVariable("amount") BigDecimal amount,
-//            @PathVariable("toCustomerId") Integer toCustomerId, @PathVariable("currencyCode") String currencyCode, @PathVariable("last4Digits") String last4Digits) {
-//        try {
-//            
-//            BaseRequestHeader brh = new BaseRequestHeader();
-//            brh.setSecurityToken("");
-//            brh.setRequestID("" + 202);
-//            this.requestHeader.setRequestHeader(brh);
-//            com.payment.pay.gtplimited.BaseRequest baseRequest = (com.payment.pay.gtplimited.BaseRequest) getTestObject(com.payment.pay.gtplimited.BaseRequest.class);
-//            //FundTransferCardToCardRequest fundTransferCardToCardRequest= new FundTransferCardToCardRequest();
-//            FundTransferRequest fundTransferRequest = new FundTransferRequest();
-//            fundTransferRequest.setCustomerID(toCustomerId);
-//            fundTransferRequest.setLast4Digits(last4Digits);
-//            fundTransferRequest.setTransferType("WalletToCard");
-//            fundTransferRequest.setTransferAmount(amount);
-//            fundTransferRequest.setReferenceMemo("Recharge de la carte cliente : " + userId);
-//
-//            String source = "XOF";
-//            fundTransferRequest.setCurrencyCode("XAF");
-//            baseRequest.setRequestData(fundTransferRequest);
+    @RequestMapping(value = "fundTransfertToCard/{userId}/{paymentType}/{amount}/{toCustomerId}/{currencyCode}/{last4Digits}/{phone}", method = RequestMethod.GET)
+    public Integer fundTransfertToCard(@PathVariable("userId") Integer userId, @PathVariable("paymentType") String paymentType, @PathVariable("amount") BigDecimal amount,
+            @PathVariable("toCustomerId") Integer toCustomerId, @PathVariable("currencyCode") String currencyCode, @PathVariable("last4Digits") String last4Digits,
+            @PathVariable("phone") String phone) {
+        try {
+            
+            BaseRequestHeader brh = new BaseRequestHeader();
+            brh.setSecurityToken("");
+            brh.setRequestID("" + 202);
+            this.requestHeader.setRequestHeader(brh);
+            com.payment.pay.gtplimited.BaseRequest baseRequest = (com.payment.pay.gtplimited.BaseRequest) getTestObject(com.payment.pay.gtplimited.BaseRequest.class);
+            FundTransferCardToCardRequest fundTransferCardToCardRequest= new FundTransferCardToCardRequest();
+            FundTransferRequest fundTransferRequest = new FundTransferRequest();
+            fundTransferRequest.setCustomerID(toCustomerId);
+            fundTransferRequest.setLast4Digits(last4Digits);
+            fundTransferRequest.setTransferType("WalletToCard");
+            fundTransferRequest.setTransferAmount(amount);
+            fundTransferRequest.setReferenceMemo("Recharge de la carte cliente : " + userId);
+
+            String source = "XOF";
+            fundTransferRequest.setCurrencyCode("XAF");
+            baseRequest.setRequestData(fundTransferRequest);
 //            Client client = clientService.findClient(userId);
 //            double solde = operationsService.getSoldeClient(client.getIdClient());
-//            double dollarAmount = amount.doubleValue();
-//            if (currencyCode.equals("DOLLAR")) {
-//                source = "USD";
-//                dollarAmount = amount.doubleValue();
-//            }
-//            if (currencyCode.equals("EURO")) {
-//                source = "EUR";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdeur();
-//            }
-//            if (currencyCode.equals("FCFA")) {
-//                source = "XOF";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdxof();
-//            }
-//            if (currencyCode.equals("CAD")) {
-//                source = "CAD";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdcad();
-//            }
-//            if (currencyCode.equals("YUAN")) {
-//                source = "CNY";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdyuan();
-//            }
-//            if (currencyCode.equals("Livre sterling")) {
-//                source = "GBP";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdLivreSterling();
-//            }
-//            if (currencyCode.equals("DIRHAM")) {
-//                source = "AED";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdaed();
-//            }
-//            if (currencyCode.equals("RAND")) {
-//                source = "ZAR";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdzar();
-//            }
-//            if (currencyCode.equals("NAIRA")) {
-//                source = "NGN";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdnaira();
-//            }
-//
-//            if (solde > (amount.doubleValue() / partenaire.getUsdxof())) {
-//                BaseResponse response = stub.submit(baseRequest, requestHeader);
-//                //response.ge
-//                if (response.getResponseData() instanceof FundTransferResponse) {
-//                    FundTransferResponse ftr = (FundTransferResponse) response.getResponseData();
-//                    this.crediter(client.getTelephone(), client.getTelephone(), dollarAmount, "retrait");
-//                    System.out.println("Good");
-//                    System.out.println(ftr.getTransactionID());
-//                } else if (response.getResponseData() instanceof ErrorResponse) {
-//                    ErrorResponse er = (ErrorResponse) response.getResponseData();
-//                    System.out.println(er.getErrorNumber());
-//                    System.out.println(er.getErrorMessage());
-//                    return -2;
-//
-//                }
+            double dollarAmount = amount.doubleValue();
+            if (currencyCode.equals("DOLLAR")) {
+                source = "USD";
+                dollarAmount = amount.doubleValue();
+            }
+            if (currencyCode.equals("EURO")) {
+                source = "EUR";
+                dollarAmount = amount.doubleValue() / 1.32965;
+            }
+            if (currencyCode.equals("FCFA")) {
+                source = "XOF";
+                dollarAmount = amount.doubleValue() / 1.32965;
+            }
+            if (currencyCode.equals("CAD")) {
+                source = "CAD";
+                dollarAmount = amount.doubleValue() / 1.32965;
+            }
+            if (currencyCode.equals("YUAN")) {
+                source = "CNY";
+                dollarAmount = amount.doubleValue() / 1.32965;
+            }
+            if (currencyCode.equals("Livre sterling")) {
+                source = "GBP";
+                dollarAmount = amount.doubleValue() / 1.32965;
+            }
+            if (currencyCode.equals("DIRHAM")) {
+                source = "AED";
+                dollarAmount = amount.doubleValue() / 1.32965;
+            }
+            if (currencyCode.equals("RAND")) {
+                source = "ZAR";
+                dollarAmount = amount.doubleValue() / 1.32965;
+            }
+            if (currencyCode.equals("NAIRA")) {
+                source = "NGN";
+                dollarAmount = amount.doubleValue() / 1.32965;
+            }
+
+           // if (solde > (amount.doubleValue() /  1.32965)) {
+                BaseResponse response = stub.submit(baseRequest, requestHeader);
+                //response.ge
+                if (response.getResponseData() instanceof FundTransferResponse) {
+                    FundTransferResponse ftr = (FundTransferResponse) response.getResponseData();
+                   // this.crediter(phone, phone, dollarAmount, "retrait");
+                    System.out.println("Good");
+                    System.out.println(ftr.getTransactionID());
+                } else if (response.getResponseData() instanceof ErrorResponse) {
+                    ErrorResponse er = (ErrorResponse) response.getResponseData();
+                    System.out.println(er.getErrorNumber());
+                    System.out.println(er.getErrorMessage());
+                    return -2;
+
+                }
 //            } else {
 //                return -3;
 //            }
-//        } catch (Exception e) {
-//            // TODO Auto-generated catch block 
-//            e.printStackTrace();
-//            return -1;
-//
-//        }
-//        BalanceRequest balanceR = new BalanceRequest();
-//
-//        return 0;
-//    }
-////    public int crediter(String numeroClient, String numeroDeposant, double montant, String type) {
+        } catch (Exception e) {
+            // TODO Auto-generated catch block 
+            e.printStackTrace();
+            return -1;
+
+        }
+        BalanceRequest balanceR = new BalanceRequest();
+
+        return 0;
+    }
+//    public int crediter(String numeroClient, String numeroDeposant, double montant, String type) {
 //        Operations operation = new Operations();
 //        BigDecimal amount = (new BigDecimal(montant)).setScale(4, BigDecimal.ROUND_DOWN);
 //        montant = amount.doubleValue();
@@ -1033,7 +1034,7 @@ public class MobilPayService {
 //            Client client = clientService.findByTelephone(numeroClient);
 //            Client clientDeposant = clientService.findByTelephone(numeroDeposant);
 //            double solde = operationsService.getSoldeClient(clientDeposant.getIdClient());
-//            //this.em.getTransaction().begin();
+//            this.em.getTransaction().begin();
 //            try {
 //                operation = new Operations();
 //                if (solde < (montant + calculerCommission(montant))) {
@@ -1061,15 +1062,15 @@ public class MobilPayService {
 //                    operation.setType("credit");
 //                }
 //                operationsService.create(operation);
-//                //this.em.persist(operation); 
+//                this.em.persist(operation); 
 //            } catch (Exception ex) {
-//                //this.em.getTransaction().rollback();
+//                this.em.getTransaction().rollback();
 //            }
-//            //this.em.getTransaction().commit();
+//            this.em.getTransaction().commit();
 //            return 0;
 //        }
-    
-    
+//    
+//    }
     
     
     
