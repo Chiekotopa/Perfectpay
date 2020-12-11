@@ -879,18 +879,18 @@ public class MobilPayService {
 
             BaseRequestHeader brh = new BaseRequestHeader();
             brh.setSecurityToken("UBCMKAKOTELq2ervuih1397fh1095437fh139pgv");
-            brh.setRequestID("201");
+            brh.setRequestID("202");
             this.requestHeader.setRequestHeader(brh);
             BaseRequest baseRequest = (BaseRequest) getTestObject(BaseRequest.class
             );
             FundTransferCardToCardRequest fundTransferCardToCardRequest = new FundTransferCardToCardRequest();
-            fundTransferCardToCardRequest.setFromCustomerID(Integer.valueOf(toCustomerId));
+            fundTransferCardToCardRequest.setFromCustomerID(3929709);
             fundTransferCardToCardRequest.setToCustomerID(toCustomerId);
             fundTransferCardToCardRequest.setLast4Digits(last4Digits);
             fundTransferCardToCardRequest.setPaymentType(paymentType);
             fundTransferCardToCardRequest.setTransferAmount(amount);
-            String source = "XOF";
-            fundTransferCardToCardRequest.setCurrencyCode("XOF");
+            String source = "XAF";
+            fundTransferCardToCardRequest.setCurrencyCode("XAF");
             baseRequest.setRequestData(fundTransferCardToCardRequest);
 
             BaseResponse response = stub.submit(baseRequest, requestHeader);
@@ -917,15 +917,15 @@ public class MobilPayService {
         return 0;
     }
 
-//// 
+////// 
 //    @RequestMapping(value = "fundTransfertToCard/{userId}/{paymentType}/{amount}/{toCustomerId}/{currencyCode}/{last4Digits}", method = RequestMethod.GET)
 //    public Integer fundTransfertToCard(@PathVariable("userId") Integer userId, @PathVariable("paymentType") String paymentType, @PathVariable("amount") BigDecimal amount,
 //            @PathVariable("toCustomerId") Integer toCustomerId, @PathVariable("currencyCode") String currencyCode, @PathVariable("last4Digits") String last4Digits) {
 //        try {
-//            partenaire = partenaireService.find(PartenaireInfo.code);
+//            
 //            BaseRequestHeader brh = new BaseRequestHeader();
-//            brh.setSecurityToken(partenaire.getGtptoken());
-//            brh.setRequestID("" + partenaire.getRequestid());
+//            brh.setSecurityToken("");
+//            brh.setRequestID("" + 202);
 //            this.requestHeader.setRequestHeader(brh);
 //            com.payment.pay.gtplimited.BaseRequest baseRequest = (com.payment.pay.gtplimited.BaseRequest) getTestObject(com.payment.pay.gtplimited.BaseRequest.class);
 //            //FundTransferCardToCardRequest fundTransferCardToCardRequest= new FundTransferCardToCardRequest();
@@ -1007,7 +1007,7 @@ public class MobilPayService {
 //
 //        return 0;
 //    }
-//    public int crediter(String numeroClient, String numeroDeposant, double montant, String type) {
+////    public int crediter(String numeroClient, String numeroDeposant, double montant, String type) {
 //        Operations operation = new Operations();
 //        BigDecimal amount = (new BigDecimal(montant)).setScale(4, BigDecimal.ROUND_DOWN);
 //        montant = amount.doubleValue();

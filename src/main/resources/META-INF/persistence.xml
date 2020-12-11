@@ -13,6 +13,7 @@
     <class>com.payment.pay.entitybd.Tabletest</class>
     <class>com.payment.pay.entitybd.Transtatus</class>
     <class>com.payment.pay.entitybd.Infopayment</class>
+    <class>com.payment.pay.entitybd.Partenaireuba</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:mysql://192.168.40.42:5785/perfectpay?zeroDateTimeBehavior=convertToNull"/>
       <property name="javax.persistence.jdbc.user" value="administrator"/>
