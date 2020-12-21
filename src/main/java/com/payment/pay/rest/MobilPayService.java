@@ -64,6 +64,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
 import com.payment.pay.gtplimited.AllServicesStub;
+import com.payment.pay.gtplimited.BalanceResponse;
 import com.payment.pay.gtplimited.FundTransferRequest;
 import com.payment.pay.gtplimited.PINCheckRequest;
 import com.payment.pay.gtplimited.PINCheckResponse;
@@ -921,7 +922,7 @@ public class MobilPayService {
     
     
        @ResponseBody
-    @RequestMapping(value = "PINCheckRequest/{CustomerID}", method = RequestMethod.GET)
+    @RequestMapping(value = "BalanceRequest/{CustomerID}", method = RequestMethod.GET)
     public Integer PINCheckRequest(@PathVariable("CustomerID") Integer CustomerID) {
         try {
 //            partenaire = partenaireService.find(PartenaireInfo.code);
@@ -939,17 +940,18 @@ public class MobilPayService {
             this.requestHeader.setRequestHeader(brh);
             BaseRequest baseRequest = (BaseRequest) getTestObject(BaseRequest.class
             );
-             PINCheckRequest pinCheckRequest = new PINCheckRequest();
-             pinCheckRequest.setCustomerID(CustomerID);
+             BalanceRequest balanceRequest = new BalanceRequest();
+             balanceRequest.setCustomerID(CustomerID);
          
-            baseRequest.setRequestData(pinCheckRequest);
+            baseRequest.setRequestData(balanceRequest);
 
             BaseResponse response = stub.submit(baseRequest, requestHeader);
             //response.ge
-            if (response.getResponseData() instanceof PINCheckResponse) {
-                PINCheckResponse fcr = (PINCheckResponse) response.getResponseData();
+            if (response.getResponseData() instanceof BalanceResponse) {
+                BalanceResponse fcr = (BalanceResponse) response.getResponseData();
                 System.out.println("Good");
-                System.out.println(fcr.getSuccess());
+                System.out.println(fcr.getCurrencyCode());
+                 System.out.println(fcr.getBalance());
             } else if (response.getResponseData() instanceof ErrorResponse) {
                 ErrorResponse er = (ErrorResponse) response.getResponseData();
                 System.out.println(er.getErrorNumber());
