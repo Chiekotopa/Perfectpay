@@ -24,6 +24,7 @@ import com.payment.pay.entities.InfoTrasaction;
 import com.payment.pay.entities.ObjectToUrlEncodedConverter;
 import com.payment.pay.entities.OmStatus;
 import com.payment.pay.entities.Pojo;
+import com.payment.pay.entities.RegistrationUser;
 import com.payment.pay.entities.ResOrange;
 import com.payment.pay.entities.Token;
 import com.payment.pay.entitybd.Api;
@@ -68,6 +69,8 @@ import com.payment.pay.gtplimited.BalanceResponse;
 import com.payment.pay.gtplimited.FundTransferRequest;
 import com.payment.pay.gtplimited.PINCheckRequest;
 import com.payment.pay.gtplimited.PINCheckResponse;
+import com.payment.pay.gtplimited.RegistrationRequest;
+import com.payment.pay.gtplimited.RegistrationResponse;
 import com.payment.pay.service.PaypalService;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.APIContext;
@@ -921,15 +924,70 @@ public class MobilPayService {
     }
     
     
+     
+       @ResponseBody
+    @RequestMapping(value = "RegistrationRequest", method = RequestMethod.POST)
+    public Integer RegistrationRequest(@RequestBody RegistrationUser registrationUser) {
+        try {
+         
+
+            this.stub = new AllServicesStub();
+            this.requestHeader = (RequestHeader) getTestObject(RequestHeader.class);
+
+            BaseRequestHeader brh = new BaseRequestHeader();
+            brh.setSecurityToken("UBCMKAKOTELq2ervuih1397fh1095437fh139pgv");
+            brh.setRequestID("202");
+            this.requestHeader.setRequestHeader(brh);
+            BaseRequest baseRequest = (BaseRequest) getTestObject(BaseRequest.class
+            );
+             RegistrationRequest registrationRequest = new RegistrationRequest();
+             registrationRequest.setAddress1(registrationUser.getAddress1());
+             registrationRequest.setPostalCode(registrationUser.getPreferredName());
+             registrationRequest.setCity(registrationUser.getCountry());
+             registrationRequest.setStateRegion(registrationUser.getStateRegion());
+             registrationRequest.setBirthDate(registrationUser.getBirthDate());
+             registrationRequest.setIDType(registrationUser.getIDType());
+             registrationRequest.setIDValue(registrationUser.getIDValue());
+             registrationRequest.setMobilePhoneNumber(registrationUser.getPhoneNumber());
+             registrationRequest.setCustomerSource(registrationUser.getCustomerSource());
+             registrationRequest.setReferredBy(registrationUser.getReferredBy());
+             registrationRequest.setSubCompany(registrationUser.getSubCompany());
+         
+            baseRequest.setRequestData(registrationRequest);
+
+            BaseResponse response = stub.submit(baseRequest, requestHeader);
+            //response.ge
+            if (response.getResponseData() instanceof RegistrationResponse) {
+                RegistrationResponse fcr = (RegistrationResponse) response.getResponseData();
+                System.out.println("Good");
+                System.out.println(fcr.getRegistrationCustomerID());
+                 System.out.println(fcr.getRegistrationLast4Digits());
+            } else if (response.getResponseData() instanceof ErrorResponse) {
+                ErrorResponse er = (ErrorResponse) response.getResponseData();
+                System.out.println(er.getErrorNumber());
+                System.out.println(er.getErrorMessage());
+                return -2;
+
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block 
+            e.printStackTrace();
+            return -1;
+
+        }
+        BalanceRequest balanceR = new BalanceRequest();
+
+        return 0;
+    }
+    
+    
+    
+    
        @ResponseBody
     @RequestMapping(value = "BalanceRequest/{CustomerID}", method = RequestMethod.GET)
-    public Integer PINCheckRequest(@PathVariable("CustomerID") Integer CustomerID) {
+    public Integer BalanceRequest(@PathVariable("CustomerID") Integer CustomerID) {
         try {
-//            partenaire = partenaireService.find(PartenaireInfo.code);
-//            Client client = clientService.findClient(userId);
-//            if (client.getCustomerID() == null) {
-//                return Response.ok(-4).build();
-//            }
+//           
 
             this.stub = new AllServicesStub();
             this.requestHeader = (RequestHeader) getTestObject(RequestHeader.class);
