@@ -65,6 +65,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.payment.pay.gtplimited.AllServicesStub;
 import com.payment.pay.gtplimited.FundTransferRequest;
+import com.payment.pay.gtplimited.PINCheckRequest;
+import com.payment.pay.gtplimited.PINCheckResponse;
 import com.payment.pay.service.PaypalService;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.APIContext;
@@ -916,6 +918,56 @@ public class MobilPayService {
 
         return 0;
     }
+    
+    
+       @ResponseBody
+    @RequestMapping(value = "PINCheckRequest/{CustomerID}", method = RequestMethod.GET)
+    public Integer PINCheckRequest(@PathVariable("CustomerID") Integer CustomerID) {
+        try {
+//            partenaire = partenaireService.find(PartenaireInfo.code);
+//            Client client = clientService.findClient(userId);
+//            if (client.getCustomerID() == null) {
+//                return Response.ok(-4).build();
+//            }
+
+            this.stub = new AllServicesStub();
+            this.requestHeader = (RequestHeader) getTestObject(RequestHeader.class);
+
+            BaseRequestHeader brh = new BaseRequestHeader();
+            brh.setSecurityToken("UBCMKAKOTELq2ervuih1397fh1095437fh139pgv");
+            brh.setRequestID("202");
+            this.requestHeader.setRequestHeader(brh);
+            BaseRequest baseRequest = (BaseRequest) getTestObject(BaseRequest.class
+            );
+             PINCheckRequest pinCheckRequest = new PINCheckRequest();
+             pinCheckRequest.setCustomerID(CustomerID);
+         
+            baseRequest.setRequestData(pinCheckRequest);
+
+            BaseResponse response = stub.submit(baseRequest, requestHeader);
+            //response.ge
+            if (response.getResponseData() instanceof PINCheckResponse) {
+                PINCheckResponse fcr = (PINCheckResponse) response.getResponseData();
+                System.out.println("Good");
+                System.out.println(fcr.getSuccess());
+            } else if (response.getResponseData() instanceof ErrorResponse) {
+                ErrorResponse er = (ErrorResponse) response.getResponseData();
+                System.out.println(er.getErrorNumber());
+                System.out.println(er.getErrorMessage());
+                return -2;
+
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block 
+            e.printStackTrace();
+            return -1;
+
+        }
+        BalanceRequest balanceR = new BalanceRequest();
+
+        return 0;
+    }
+
 
 ////// 
     @RequestMapping(value = "fundTransfertToCard/{userId}/{paymentType}/{amount}/{toCustomerId}/{currencyCode}/{last4Digits}/{phone}", method = RequestMethod.GET)
