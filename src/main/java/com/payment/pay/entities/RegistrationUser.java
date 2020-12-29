@@ -10,7 +10,7 @@ package com.payment.pay.entities;
  * @author Carlos TCHIOZEM
  */
 public class RegistrationUser {
-    
+   
     private String PreferredName;
      private String Address1;
      private String City;
@@ -122,6 +122,8 @@ public class RegistrationUser {
     public void setSubCompany(int SubCompany) {
         this.SubCompany = SubCompany;
     }
+
+    
      
     
      

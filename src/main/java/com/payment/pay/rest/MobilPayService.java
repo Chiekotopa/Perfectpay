@@ -925,7 +925,7 @@ public class MobilPayService {
     
     
      
-       @ResponseBody
+    @ResponseBody
     @RequestMapping(value = "RegistrationRequest", method = RequestMethod.POST)
     public Integer RegistrationRequest(@RequestBody RegistrationUser registrationUser) {
         try {
@@ -940,6 +940,7 @@ public class MobilPayService {
             this.requestHeader.setRequestHeader(brh);
             BaseRequest baseRequest = (BaseRequest) getTestObject(BaseRequest.class
             );
+           
              RegistrationRequest registrationRequest = new RegistrationRequest();
              registrationRequest.setAddress1(registrationUser.getAddress1());
              registrationRequest.setPostalCode(registrationUser.getPreferredName());
