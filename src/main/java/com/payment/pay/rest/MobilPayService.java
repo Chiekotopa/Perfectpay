@@ -14,6 +14,7 @@ import com.payment.pay.dao.ClientRepository;
 import com.payment.pay.dao.InfopayRepository;
 import com.payment.pay.dao.PartenaireRepository;
 import com.payment.pay.dao.ServiceRepository;
+import com.payment.pay.dao.SessiontransRepository;
 import com.payment.pay.dao.SouscriptionRepository;
 import com.payment.pay.dao.TokenomRepository;
 import com.payment.pay.dao.TranstatusRepository;
@@ -25,6 +26,7 @@ import com.payment.pay.entities.ObjectToUrlEncodedConverter;
 import com.payment.pay.entities.OmStatus;
 import com.payment.pay.entities.Pojo;
 import com.payment.pay.entities.ResOrange;
+import com.payment.pay.entities.Responses;
 import com.payment.pay.entities.Token;
 import com.payment.pay.entitybd.Api;
 import com.payment.pay.entitybd.Clients;
@@ -127,6 +129,9 @@ public class MobilPayService {
 
     @Autowired
     MultiThread multiThread1;
+
+    @Autowired
+    SessiontransRepository sessiontransRepository;
 
     @Autowired
     UssdService ussdservice;
@@ -836,8 +841,49 @@ public class MobilPayService {
 
     //Api debit du client via perfectPay*******************************************************
     @ResponseBody
-    @RequestMapping(method = RequestMethod.POST, value = "initTransDebitClientPefectPay")
+    @RequestMapping(method = RequestMethod.POST, value = "initDebitClientPefectPay")
     public String initTransDebitClientPefectPay(@RequestBody Sessiontrans sessiontrans) {
+        Responses responses = new Responses();
+        if (ussdservice.checkerCompteClientetrait(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire()) != null) {
+            responses = ussdservice.checkerCompteClientetrait(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire());
+            if (responses.getSucces() == -2) {
+
+                return responses.getMsg();
+            }
+            if (responses.getSucces() == -1) {
+
+                return responses.getMsg();
+            }
+        }
+
+        if (ussdservice.checkerSoldeExpediteurRetrait(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire(), sessiontrans.getMontant()) != null) {
+            responses = ussdservice.checkerSoldeExpediteurRetrait(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire(), sessiontrans.getMontant());
+            if (responses.getSucces() == -2) {
+
+                return responses.getMsg();
+            }
+
+        }
+        if (ussdservice.validationInitilisationRretraitAccountPerfectPay(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire(), sessiontrans.getMontant(), sessiontrans.getCodesecret()) != null) {
+            responses = ussdservice.validationInitilisationRretraitAccountPerfectPay(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire(), sessiontrans.getMontant(), sessiontrans.getCodesecret());
+            if (responses.getSucces() == -2) {
+                responses.setMsg("Votre code secret est incorrect");
+                return responses.getMsg();
+            }
+
+            if (responses.getSucces() == 1) {
+                sessiontrans.setPhonedestinataire("237" + sessiontrans.getPhonedestinataire());
+                sessiontrans.setStatus("1");
+                sessiontrans.setTread("1");
+                sessiontransRepository.save(sessiontrans);
+                MultiThread multiThread = new MultiThread(sessiontransRepository);
+                multiThread.setphone(sessiontrans.getPhonedestinataire());
+                multiThread.setphoneExp(sessiontrans.getPhoneagent());
+                multiThread.start();
+                return responses.getMsg();
+            }
+
+        }
 
         return "";
     }
