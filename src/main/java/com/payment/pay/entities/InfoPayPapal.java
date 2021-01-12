@@ -11,17 +11,17 @@ package com.payment.pay.entities;
  */
 public class InfoPayPapal {
     
- private Double amount;
+ private String amount;
  private String url_return,url_cancel,codeClient,codeApi,projet,moyenTransaction,compteClient;
 
     public InfoPayPapal() {
     }
 
-    public Double getAmount() {
+    public String getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(String amount) {
         this.amount = amount;
     }
 

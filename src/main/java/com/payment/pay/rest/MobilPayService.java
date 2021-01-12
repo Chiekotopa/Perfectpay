@@ -24,7 +24,6 @@ import com.payment.pay.entities.InfoTrasaction;
 import com.payment.pay.entities.ObjectToUrlEncodedConverter;
 import com.payment.pay.entities.OmStatus;
 import com.payment.pay.entities.Pojo;
-import com.payment.pay.entities.RegistrationUser;
 import com.payment.pay.entities.ResOrange;
 import com.payment.pay.entities.Token;
 import com.payment.pay.entitybd.Api;
@@ -32,6 +31,7 @@ import com.payment.pay.entitybd.Clients;
 import com.payment.pay.entitybd.Infopayment;
 import com.payment.pay.entitybd.Partenaire;
 import com.payment.pay.entitybd.Services;
+import com.payment.pay.entitybd.Sessiontrans;
 import com.payment.pay.entitybd.Souscriptions;
 import com.payment.pay.entitybd.Tokenom;
 import com.payment.pay.entitybd.Transtatus;
@@ -65,13 +65,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
 import com.payment.pay.gtplimited.AllServicesStub;
-import com.payment.pay.gtplimited.BalanceResponse;
-import com.payment.pay.gtplimited.FundTransferRequest;
-import com.payment.pay.gtplimited.PINCheckRequest;
-import com.payment.pay.gtplimited.PINCheckResponse;
-import com.payment.pay.gtplimited.RegistrationRequest;
-import com.payment.pay.gtplimited.RegistrationResponse;
+import com.payment.pay.service.MultiThread;
 import com.payment.pay.service.PaypalService;
+import com.payment.pay.service.UssdService;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
@@ -128,6 +124,12 @@ public class MobilPayService {
 
     @Autowired
     private PaypalService paypalService;
+
+    @Autowired
+    MultiThread multiThread1;
+
+    @Autowired
+    UssdService ussdservice;
 
     APIContext aPIContext;
 
@@ -258,7 +260,7 @@ public class MobilPayService {
         pojo.setMerchant_key("66b0ed55");
         pojo.setReference(partenaire.getOmReference());
         pojo.setOrder_id("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
-        pojo.setNotif_url("http://154.72.148.105:8081/Perfectpay/rest/api/paiement/orangeResponse");
+        pojo.setNotif_url("http://192.168.40.113:8081/Perfectpay/rest/api/paiement/orangeResponse");
         partenaire.setOrderId(partenaire.getOrderId() + 1);
         partenaireRepository.save(partenaire);
 
@@ -301,7 +303,7 @@ public class MobilPayService {
             @PathVariable(value = "amount") String amount, @PathVariable(value = "compteClient") String compteClient,
             @PathVariable(value = "operateur") String operateur, @RequestBody Pojo pojo) {
         try {
-            
+
         } catch (Exception e) {
         }
         Transtatus transtatus = new Transtatus();
@@ -354,7 +356,7 @@ public class MobilPayService {
         pojo.setMerchant_key("66b0ed55");
         pojo.setReference(partenaire.getOmReference());
         pojo.setOrder_id("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
-        pojo.setNotif_url("http://154.72.148.105:8081/Perfectpay/rest/api/paiement/orangeResponseRecharge");
+        pojo.setNotif_url("http://192.168.40.113:8081/Perfectpay/rest/api/paiement/orangeResponseRecharge");
         partenaire.setOrderId(partenaire.getOrderId() + 1);
         partenaireRepository.save(partenaire);
 
@@ -407,7 +409,7 @@ public class MobilPayService {
 
             try {
                 infopayment = infopayRepository.findByNotifToken(resOrange.getNotif_token());
-                String urls = "http://154.72.148.105/apipayment/api-perfectpay.php?action=create_transaction&CodeClient=" + infopayment.getCodeClient() + "&CodeAPI=" + infopayment.getCodeAPI()
+                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + infopayment.getCodeClient() + "&CodeAPI=" + infopayment.getCodeAPI()
                         + "&Projet=" + infopayment.getProjet()
                         + "&Montant=" + infopayment.getMontant() + "&MoyenTransaction=" + infopayment.getMoyenTransaction() + "&Telephone=" + infopayment.getTel() + "";
                 restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
@@ -435,7 +437,7 @@ public class MobilPayService {
 
             try {
                 infopayment = infopayRepository.findByNotifToken(resOrange.getNotif_token());
-                String urls = "http://154.72.148.105/apipayment/api-perfectpay.php?action=create_transaction_recharge&CodeClient=" + infopayment.getCodeClient() + "&CodeAPI=" + infopayment.getCodeAPI()
+                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge&CodeClient=" + infopayment.getCodeClient() + "&CodeAPI=" + infopayment.getCodeAPI()
                         + "&Projet=" + infopayment.getProjet() + "&Montant=" + infopayment.getMontant()
                         + "&MoyenTransaction=" + infopayment.getMoyenTransaction() + "&Telephone=" + infopayment.getTel() + "&Compte_client=" + infopayment.getCompteClient() + "";
                 restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
@@ -497,7 +499,7 @@ public class MobilPayService {
             return "-2";
         }
         if (verifClient(codeClient, codeApi, nomProjet).equals("-3")) {
-            
+
             return "-3";
         }
 
@@ -527,7 +529,7 @@ public class MobilPayService {
             System.out.println(etat);
             if (etat.equals("1")) {
                 try {
-                    String urls = "http://154.72.148.105/apipayment/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + nomProjet
+                    String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + nomProjet
                             + "&Montant=" + amount + "&MoyenTransaction=" + operateur + "&Telephone=" + phonenumber + "";
 
                     restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
@@ -567,12 +569,12 @@ public class MobilPayService {
         String url = "https://api.monetbil.com/payment/v1/placePayment";
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
 
-      if (verifClient(codeClient, codeApi, nomProjet).equals("-2")) {
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-2")) {
 
             return "-2";
         }
         if (verifClient(codeClient, codeApi, nomProjet).equals("-3")) {
-            
+
             return "-3";
         }
 
@@ -602,7 +604,7 @@ public class MobilPayService {
             System.out.println(etat);
             if (etat.equals("1")) {
                 try {
-                    String urls = "http://154.72.148.105/apipayment/api-perfectpay.php?action=create_transaction_recharge&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + nomProjet + ""
+                    String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + nomProjet + ""
                             + "&Montant=" + amount + "&MoyenTransaction=" + operateur + "&Telephone=" + phonenumber + "&Compte_client=" + compteClient + "";
 
                     ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
@@ -708,36 +710,36 @@ public class MobilPayService {
         HashMap<String, String> lienpay = new HashMap<String, String>();
 
         if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
-            
+
             lienpay.put("redirect", "-2");
             return lienpay;
         }
-          if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
-            
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
+
             lienpay.put("redirect", "-3");
             return lienpay;
         }
-           if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
-            
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
+
             lienpay.put("redirect", "-4");
             return lienpay;
         }
         String cancelUrl = infoPayPapal.getUrl_cancel();
-        String successUrl = "http://154.72.148.105:8082/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
+        String successUrl = "http://192.168.40.113:8081/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
                 + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount() + "";
-                           System.out.println(infoPayPapal.getAmount());
+        System.out.println(infoPayPapal.getAmount());
 
         try {
             Payment payment = paypalService.createPayment(
-                    5.5,                  
+                    infoPayPapal.getAmount(),
                     "USD",
                     PaypalPaymentMethod.paypal,
                     PaypalPaymentIntent.sale,
                     "payment description",
                     cancelUrl,
                     successUrl);
-            
+
             for (Links links : payment.getLinks()) {
                 if (links.getRel().equals("approval_url")) {
                     lienpay.put("redirect", links.getHref());
@@ -772,7 +774,7 @@ public class MobilPayService {
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(codeApi);
-                String urls = "http://154.72.148.105/apipayment/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet + ""
+                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet + ""
                         + "&Montant=" + amount + "&MoyenTransaction=" + moyenTransaction + "&Compte_client=" + compteClient + "";
 
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
@@ -805,7 +807,7 @@ public class MobilPayService {
 
             return "-3";
         }
-         if (verifClient(ipp.getCodeClient(), ipp.getCodeApi(), ipp.getProjet()).equals("-3")) {
+        if (verifClient(ipp.getCodeClient(), ipp.getCodeApi(), ipp.getProjet()).equals("-3")) {
 
             return "-4";
         }
@@ -817,7 +819,7 @@ public class MobilPayService {
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(ipp.getCodeApi());
-                String urls = "http://154.72.148.105/apipayment/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + ipp.getCodeClient()
+                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + ipp.getCodeClient()
                         + "&CodeAPI=" + ipp.getCodeApi() + "&Projet=" + ipp.getProjet() + ""
                         + "&Montant=" + ipp.getAmount() + "&MoyenTransaction=" + ipp.getMoyenTransaction() + "&Compte_client=" + ipp.getCompteClient() + "";
 
@@ -832,6 +834,16 @@ public class MobilPayService {
         return "0";
     }
 
+    //Api debit du client via perfectPay*******************************************************
+    @ResponseBody
+    @RequestMapping(method = RequestMethod.POST, value = "initTransDebitClientPefectPay")
+    public String initTransDebitClientPefectPay(@RequestBody Sessiontrans sessiontrans) {
+
+        return "";
+    }
+
+    //**********************************************************Api integrations paiement perfectPay
+    //public
 //    @RequestMapping(value = "/stripePayment/{paymentId}/{amount}", method = RequestMethod.GET)
 //    public String stripePayment(@PathVariable("paymentId") String paymentId, @PathVariable("amount") String amount) throws StripeException {
 //
@@ -885,18 +897,18 @@ public class MobilPayService {
 
             BaseRequestHeader brh = new BaseRequestHeader();
             brh.setSecurityToken("UBCMKAKOTELq2ervuih1397fh1095437fh139pgv");
-            brh.setRequestID("202");
+            brh.setRequestID("201");
             this.requestHeader.setRequestHeader(brh);
             BaseRequest baseRequest = (BaseRequest) getTestObject(BaseRequest.class
             );
             FundTransferCardToCardRequest fundTransferCardToCardRequest = new FundTransferCardToCardRequest();
-            fundTransferCardToCardRequest.setFromCustomerID(3929709);
+            fundTransferCardToCardRequest.setFromCustomerID(Integer.valueOf(toCustomerId));
             fundTransferCardToCardRequest.setToCustomerID(toCustomerId);
             fundTransferCardToCardRequest.setLast4Digits(last4Digits);
             fundTransferCardToCardRequest.setPaymentType(paymentType);
             fundTransferCardToCardRequest.setTransferAmount(amount);
-            String source = "XAF";
-            fundTransferCardToCardRequest.setCurrencyCode("XAF");
+            String source = "XOF";
+            fundTransferCardToCardRequest.setCurrencyCode("XOF");
             baseRequest.setRequestData(fundTransferCardToCardRequest);
 
             BaseResponse response = stub.submit(baseRequest, requestHeader);
@@ -922,205 +934,97 @@ public class MobilPayService {
 
         return 0;
     }
-    
-    
-     
-    @ResponseBody
-    @RequestMapping(value = "RegistrationRequest", method = RequestMethod.POST)
-    public Integer RegistrationRequest(@RequestBody RegistrationUser registrationUser) {
-        try {
-         
 
-            this.stub = new AllServicesStub();
-            this.requestHeader = (RequestHeader) getTestObject(RequestHeader.class);
-
-            BaseRequestHeader brh = new BaseRequestHeader();
-            brh.setSecurityToken("UBCMKAKOTELq2ervuih1397fh1095437fh139pgv");
-            brh.setRequestID("202");
-            this.requestHeader.setRequestHeader(brh);
-            BaseRequest baseRequest = (BaseRequest) getTestObject(BaseRequest.class
-            );
-           
-             RegistrationRequest registrationRequest = new RegistrationRequest();
-             registrationRequest.setAddress1(registrationUser.getAddress1());
-             registrationRequest.setPostalCode(registrationUser.getPreferredName());
-             registrationRequest.setCity(registrationUser.getCountry());
-             registrationRequest.setStateRegion(registrationUser.getStateRegion());
-             registrationRequest.setBirthDate(registrationUser.getBirthDate());
-             registrationRequest.setIDType(registrationUser.getIDType());
-             registrationRequest.setIDValue(registrationUser.getIDValue());
-             registrationRequest.setMobilePhoneNumber(registrationUser.getPhoneNumber());
-             registrationRequest.setCustomerSource(registrationUser.getCustomerSource());
-             registrationRequest.setReferredBy(registrationUser.getReferredBy());
-             registrationRequest.setSubCompany(registrationUser.getSubCompany());
-         
-            baseRequest.setRequestData(registrationRequest);
-
-            BaseResponse response = stub.submit(baseRequest, requestHeader);
-            //response.ge
-            if (response.getResponseData() instanceof RegistrationResponse) {
-                RegistrationResponse fcr = (RegistrationResponse) response.getResponseData();
-                System.out.println("Good");
-                System.out.println(fcr.getRegistrationCustomerID());
-                 System.out.println(fcr.getRegistrationLast4Digits());
-            } else if (response.getResponseData() instanceof ErrorResponse) {
-                ErrorResponse er = (ErrorResponse) response.getResponseData();
-                System.out.println(er.getErrorNumber());
-                System.out.println(er.getErrorMessage());
-                return -2;
-
-            }
-        } catch (Exception e) {
-            // TODO Auto-generated catch block 
-            e.printStackTrace();
-            return -1;
-
-        }
-        BalanceRequest balanceR = new BalanceRequest();
-
-        return 0;
-    }
-    
-    
-    
-    
-       @ResponseBody
-    @RequestMapping(value = "BalanceRequest/{CustomerID}", method = RequestMethod.GET)
-    public Integer BalanceRequest(@PathVariable("CustomerID") Integer CustomerID) {
-        try {
-//           
-
-            this.stub = new AllServicesStub();
-            this.requestHeader = (RequestHeader) getTestObject(RequestHeader.class);
-
-            BaseRequestHeader brh = new BaseRequestHeader();
-            brh.setSecurityToken("UBCMKAKOTELq2ervuih1397fh1095437fh139pgv");
-            brh.setRequestID("202");
-            this.requestHeader.setRequestHeader(brh);
-            BaseRequest baseRequest = (BaseRequest) getTestObject(BaseRequest.class
-            );
-             BalanceRequest balanceRequest = new BalanceRequest();
-             balanceRequest.setCustomerID(CustomerID);
-         
-            baseRequest.setRequestData(balanceRequest);
-
-            BaseResponse response = stub.submit(baseRequest, requestHeader);
-            //response.ge
-            if (response.getResponseData() instanceof BalanceResponse) {
-                BalanceResponse fcr = (BalanceResponse) response.getResponseData();
-                System.out.println("Good");
-                System.out.println(fcr.getCurrencyCode());
-                 System.out.println(fcr.getBalance());
-            } else if (response.getResponseData() instanceof ErrorResponse) {
-                ErrorResponse er = (ErrorResponse) response.getResponseData();
-                System.out.println(er.getErrorNumber());
-                System.out.println(er.getErrorMessage());
-                return -2;
-
-            }
-        } catch (Exception e) {
-            // TODO Auto-generated catch block 
-            e.printStackTrace();
-            return -1;
-
-        }
-        BalanceRequest balanceR = new BalanceRequest();
-
-        return 0;
-    }
-
-
-////// 
-    @RequestMapping(value = "fundTransfertToCard/{userId}/{paymentType}/{amount}/{toCustomerId}/{currencyCode}/{last4Digits}/{phone}", method = RequestMethod.GET)
-    public Integer fundTransfertToCard(@PathVariable("userId") Integer userId, @PathVariable("paymentType") String paymentType, @PathVariable("amount") BigDecimal amount,
-            @PathVariable("toCustomerId") Integer toCustomerId, @PathVariable("currencyCode") String currencyCode, @PathVariable("last4Digits") String last4Digits,
-            @PathVariable("phone") String phone) {
-        try {
-            
-            BaseRequestHeader brh = new BaseRequestHeader();
-            brh.setSecurityToken("");
-            brh.setRequestID("" + 202);
-            this.requestHeader.setRequestHeader(brh);
-            com.payment.pay.gtplimited.BaseRequest baseRequest = (com.payment.pay.gtplimited.BaseRequest) getTestObject(com.payment.pay.gtplimited.BaseRequest.class);
-            FundTransferCardToCardRequest fundTransferCardToCardRequest= new FundTransferCardToCardRequest();
-            FundTransferRequest fundTransferRequest = new FundTransferRequest();
-            fundTransferRequest.setCustomerID(toCustomerId);
-            fundTransferRequest.setLast4Digits(last4Digits);
-            fundTransferRequest.setTransferType("WalletToCard");
-            fundTransferRequest.setTransferAmount(amount);
-            fundTransferRequest.setReferenceMemo("Recharge de la carte cliente : " + userId);
-
-            String source = "XOF";
-            fundTransferRequest.setCurrencyCode("XAF");
-            baseRequest.setRequestData(fundTransferRequest);
+//// 
+//    @RequestMapping(value = "fundTransfertToCard/{userId}/{paymentType}/{amount}/{toCustomerId}/{currencyCode}/{last4Digits}", method = RequestMethod.GET)
+//    public Integer fundTransfertToCard(@PathVariable("userId") Integer userId, @PathVariable("paymentType") String paymentType, @PathVariable("amount") BigDecimal amount,
+//            @PathVariable("toCustomerId") Integer toCustomerId, @PathVariable("currencyCode") String currencyCode, @PathVariable("last4Digits") String last4Digits) {
+//        try {
+//            partenaire = partenaireService.find(PartenaireInfo.code);
+//            BaseRequestHeader brh = new BaseRequestHeader();
+//            brh.setSecurityToken(partenaire.getGtptoken());
+//            brh.setRequestID("" + partenaire.getRequestid());
+//            this.requestHeader.setRequestHeader(brh);
+//            com.payment.pay.gtplimited.BaseRequest baseRequest = (com.payment.pay.gtplimited.BaseRequest) getTestObject(com.payment.pay.gtplimited.BaseRequest.class);
+//            //FundTransferCardToCardRequest fundTransferCardToCardRequest= new FundTransferCardToCardRequest();
+//            FundTransferRequest fundTransferRequest = new FundTransferRequest();
+//            fundTransferRequest.setCustomerID(toCustomerId);
+//            fundTransferRequest.setLast4Digits(last4Digits);
+//            fundTransferRequest.setTransferType("WalletToCard");
+//            fundTransferRequest.setTransferAmount(amount);
+//            fundTransferRequest.setReferenceMemo("Recharge de la carte cliente : " + userId);
+//
+//            String source = "XOF";
+//            fundTransferRequest.setCurrencyCode("XAF");
+//            baseRequest.setRequestData(fundTransferRequest);
 //            Client client = clientService.findClient(userId);
 //            double solde = operationsService.getSoldeClient(client.getIdClient());
-            double dollarAmount = amount.doubleValue();
-            if (currencyCode.equals("DOLLAR")) {
-                source = "USD";
-                dollarAmount = amount.doubleValue();
-            }
-            if (currencyCode.equals("EURO")) {
-                source = "EUR";
-                dollarAmount = amount.doubleValue() / 1.32965;
-            }
-            if (currencyCode.equals("FCFA")) {
-                source = "XOF";
-                dollarAmount = amount.doubleValue() / 1.32965;
-            }
-            if (currencyCode.equals("CAD")) {
-                source = "CAD";
-                dollarAmount = amount.doubleValue() / 1.32965;
-            }
-            if (currencyCode.equals("YUAN")) {
-                source = "CNY";
-                dollarAmount = amount.doubleValue() / 1.32965;
-            }
-            if (currencyCode.equals("Livre sterling")) {
-                source = "GBP";
-                dollarAmount = amount.doubleValue() / 1.32965;
-            }
-            if (currencyCode.equals("DIRHAM")) {
-                source = "AED";
-                dollarAmount = amount.doubleValue() / 1.32965;
-            }
-            if (currencyCode.equals("RAND")) {
-                source = "ZAR";
-                dollarAmount = amount.doubleValue() / 1.32965;
-            }
-            if (currencyCode.equals("NAIRA")) {
-                source = "NGN";
-                dollarAmount = amount.doubleValue() / 1.32965;
-            }
-
-           // if (solde > (amount.doubleValue() /  1.32965)) {
-                BaseResponse response = stub.submit(baseRequest, requestHeader);
-                //response.ge
-                if (response.getResponseData() instanceof FundTransferResponse) {
-                    FundTransferResponse ftr = (FundTransferResponse) response.getResponseData();
-                   // this.crediter(phone, phone, dollarAmount, "retrait");
-                    System.out.println("Good");
-                    System.out.println(ftr.getTransactionID());
-                } else if (response.getResponseData() instanceof ErrorResponse) {
-                    ErrorResponse er = (ErrorResponse) response.getResponseData();
-                    System.out.println(er.getErrorNumber());
-                    System.out.println(er.getErrorMessage());
-                    return -2;
-
-                }
+//            double dollarAmount = amount.doubleValue();
+//            if (currencyCode.equals("DOLLAR")) {
+//                source = "USD";
+//                dollarAmount = amount.doubleValue();
+//            }
+//            if (currencyCode.equals("EURO")) {
+//                source = "EUR";
+//                dollarAmount = amount.doubleValue() / partenaire.getUsdeur();
+//            }
+//            if (currencyCode.equals("FCFA")) {
+//                source = "XOF";
+//                dollarAmount = amount.doubleValue() / partenaire.getUsdxof();
+//            }
+//            if (currencyCode.equals("CAD")) {
+//                source = "CAD";
+//                dollarAmount = amount.doubleValue() / partenaire.getUsdcad();
+//            }
+//            if (currencyCode.equals("YUAN")) {
+//                source = "CNY";
+//                dollarAmount = amount.doubleValue() / partenaire.getUsdyuan();
+//            }
+//            if (currencyCode.equals("Livre sterling")) {
+//                source = "GBP";
+//                dollarAmount = amount.doubleValue() / partenaire.getUsdLivreSterling();
+//            }
+//            if (currencyCode.equals("DIRHAM")) {
+//                source = "AED";
+//                dollarAmount = amount.doubleValue() / partenaire.getUsdaed();
+//            }
+//            if (currencyCode.equals("RAND")) {
+//                source = "ZAR";
+//                dollarAmount = amount.doubleValue() / partenaire.getUsdzar();
+//            }
+//            if (currencyCode.equals("NAIRA")) {
+//                source = "NGN";
+//                dollarAmount = amount.doubleValue() / partenaire.getUsdnaira();
+//            }
+//
+//            if (solde > (amount.doubleValue() / partenaire.getUsdxof())) {
+//                BaseResponse response = stub.submit(baseRequest, requestHeader);
+//                //response.ge
+//                if (response.getResponseData() instanceof FundTransferResponse) {
+//                    FundTransferResponse ftr = (FundTransferResponse) response.getResponseData();
+//                    this.crediter(client.getTelephone(), client.getTelephone(), dollarAmount, "retrait");
+//                    System.out.println("Good");
+//                    System.out.println(ftr.getTransactionID());
+//                } else if (response.getResponseData() instanceof ErrorResponse) {
+//                    ErrorResponse er = (ErrorResponse) response.getResponseData();
+//                    System.out.println(er.getErrorNumber());
+//                    System.out.println(er.getErrorMessage());
+//                    return -2;
+//
+//                }
 //            } else {
 //                return -3;
 //            }
-        } catch (Exception e) {
-            // TODO Auto-generated catch block 
-            e.printStackTrace();
-            return -1;
-
-        }
-        BalanceRequest balanceR = new BalanceRequest();
-
-        return 0;
-    }
+//        } catch (Exception e) {
+//            // TODO Auto-generated catch block 
+//            e.printStackTrace();
+//            return -1;
+//
+//        }
+//        BalanceRequest balanceR = new BalanceRequest();
+//
+//        return 0;
+//    }
 //    public int crediter(String numeroClient, String numeroDeposant, double montant, String type) {
 //        Operations operation = new Operations();
 //        BigDecimal amount = (new BigDecimal(montant)).setScale(4, BigDecimal.ROUND_DOWN);
@@ -1147,7 +1051,7 @@ public class MobilPayService {
 //            Client client = clientService.findByTelephone(numeroClient);
 //            Client clientDeposant = clientService.findByTelephone(numeroDeposant);
 //            double solde = operationsService.getSoldeClient(clientDeposant.getIdClient());
-//            this.em.getTransaction().begin();
+//            //this.em.getTransaction().begin();
 //            try {
 //                operation = new Operations();
 //                if (solde < (montant + calculerCommission(montant))) {
@@ -1175,48 +1079,142 @@ public class MobilPayService {
 //                    operation.setType("credit");
 //                }
 //                operationsService.create(operation);
-//                this.em.persist(operation); 
+//                //this.em.persist(operation); 
 //            } catch (Exception ex) {
-//                this.em.getTransaction().rollback();
+//                //this.em.getTransaction().rollback();
 //            }
-//            this.em.getTransaction().commit();
+//            //this.em.getTransaction().commit();
 //            return 0;
 //        }
-//    
-//    }
-    
-    
-    
-     @ResponseBody
+    @ResponseBody
     @RequestMapping(value = "/testGet", method = RequestMethod.GET)
     public HashMap TestGet() {
-       HashMap hashMap=new HashMap();
-         try {
-         hashMap.put("message", "Get Request");
-         hashMap.put("Status", "OK");
-         } catch (Exception e) {
-              hashMap.put("message", "Get Request");
-                hashMap.put("Status", e.getMessage());
-             return hashMap;
-         }
-      
+        HashMap hashMap = new HashMap();
+        try {
+            hashMap.put("message", "Get Request");
+            hashMap.put("Status", "OK");
+        } catch (Exception e) {
+            hashMap.put("message", "Get Request");
+            hashMap.put("Status", e.getMessage());
+            return hashMap;
+        }
+
         return hashMap;
     }
-    
-     @ResponseBody
+
+    @ResponseBody
     @RequestMapping(value = "/testPost", method = RequestMethod.POST)
     public HashMap getTestPost() {
-       HashMap hashMap=new HashMap();
-         try {
-         hashMap.put("message", "Post Request");
-         hashMap.put("Status", "OK");
-         } catch (Exception e) {
-              hashMap.put("message", "Post Request");
-                hashMap.put("Status", e.getMessage());
-             return hashMap;
-         }
-      
+        HashMap hashMap = new HashMap();
+        try {
+            hashMap.put("message", "Post Request");
+            hashMap.put("Status", "OK");
+        } catch (Exception e) {
+            hashMap.put("message", "Post Request");
+            hashMap.put("Status", e.getMessage());
+            return hashMap;
+        }
+
         return hashMap;
     }
+//
+//    @ResponseBody
+//    @RequestMapping(value = "getOnlineDevises/{devise}", method = RequestMethod.GET)
+//    public Partenaireuba getDevise(@PathVariable("devise") String devise) throws JSONException {
+//        String CURRENCY_LAYER_ACCESS_KEY = "be142608b7534c95de84336dc866f2a0";
+//        String source = null;
+//        String format = "1";
+//        String currencies = null;
+//        if (devise.equals("DOLLAR")) {
+//            source = "USD";
+//            currencies = "EUR,XOF,CAD,GBP,NGN,AED,CNY,ZAR";
+//        }
+//        if (devise.equals("EURO")) {
+//            source = "EUR";
+//            currencies = "USD,XOF,CAD,GBP,NGN,AED,CNY,ZAR";
+//        }
+//        if (devise.equals("FCFA")) {
+//            source = "XOF";
+//            currencies = "USD,EUR,CAD,GBP,NGN,AED,CNY,ZAR";
+//        }
+//        if (devise.equals("CAD")) {
+//            source = "CAD";
+//            currencies = "USD,EUR,XOF,GBP,NGN,AED,CNY,ZAR";
+//        }
+//        if (devise.equals("YUAN")) {
+//            source = "CNY";
+//            currencies = "USD,EUR,XOF,CAD,GBP,NGN,AED,ZAR";
+//        }
+//        if (devise.equals("Livre sterling")) {
+//            source = "GBP";
+//            currencies = "USD,EUR,XOF,CAD,NGN,AED,CNY,ZAR";
+//        }
+//        if (devise.equals("DIRHAM")) {
+//            source = "AED";
+//            currencies = "USD,EUR,XOF,CAD,GBP,NGN,CNY,ZAR";
+//        }
+//        if (devise.equals("RAND")) {
+//            source = "ZAR";
+//            currencies = "USD,EUR,XOF,CAD,GBP,NGN,AED,CNY";
+//        }
+//        if (devise.equals("NAIRA")) {
+//            source = "NGN";
+//            currencies = "USD,EUR,XOF,CAD,GBP,AED,CNY,ZAR";
+//        }
+//        String url = "https://apilayer.net/api/live?access_key=" + CURRENCY_LAYER_ACCESS_KEY + "&currencies=" + currencies + "&source=" + source + "&format=" + format;
+//        CloseableHttpClient httpclient = HttpClients.createDefault();
+//        HttpGet httpget = new HttpGet(url);
+//        CloseableHttpResponse response;
+//        try {
+//            response = httpclient.execute(httpget);
+//            System.out.println("1------------------------------------1");
+//            System.out.println(response.getStatusLine());
+//            System.out.println("1------------------------------------1");
+//
+//            // Get hold of the response entity
+//            org.apache.http.HttpEntity entity = response.getEntity();
+//
+//            // If the response does not enclose an entity, there is no need
+//            // to bother about connection release
+//            byte[] buffer = new byte[1024];
+//            if (entity != null) {
+//                System.out.println("response : " + entity);
+//                InputStream inputStream = entity.getContent();
+//                int bytesRead = 0;
+//                BufferedInputStream bis = new BufferedInputStream(inputStream);
+//                while ((bytesRead = bis.read(buffer)) != -1) {
+//                    String chunk = new String(buffer, 0, bytesRead);
+//                    JSONObject obj = new JSONObject(chunk);
+//                    if (obj.has("success")) {
+//                        if (obj.getBoolean("success")) {
+//                            JSONObject quotes = (JSONObject) obj.get("quotes");
+//                            Partenaireuba partenaireuba=new Partenaireuba();
+//                            partenaireuba.setUsdeur(Float.valueOf(quotes.getString("USDEUR")));
+//                            return partenaireuba;
+//                                    
+//                            //req.updateDevise(Float.valueOf(quotes.getString("USDEUR")), Float.valueOf(quotes.getString("USDXOF")), Float.valueOf(quotes.getString("USDCAD")), Float.valueOf(quotes.getString("USDCNY")), Float.valueOf(quotes.getString("USDGBP")), Float.valueOf(quotes.getString("USDAED")), Float.valueOf(quotes.getString("USDZAR")), Float.valueOf(quotes.getString("USDNGN")));
+//                        } else {
+//                            return partenaireuba;
+//                                    
+//                        }
+//                  System.out.println("Sender : "+sms.getSender()+"; destinatiaire : "+sms.getDestinataire()+"; Code retour : "+chunk);
+//                    //System.out.println("flag : "+flag);
+//                }
+//          
+//        } catch (ConnectException e) {
+//            return Response.ok(-1)
+//                   
+//        } catch (IOException ioException) {
+//            return Response.ok(-1)
+//                    .build();
+//        } catch (RuntimeException runtimeException) {
+//            return Response.ok(-1)
+//                    .build();
+//        }
+//        return Response.ok(-1)
+//               .build();
+//    }
+//        return null;
+//            
 
 }

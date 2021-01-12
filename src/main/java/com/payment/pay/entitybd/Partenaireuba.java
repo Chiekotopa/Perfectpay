@@ -34,10 +34,7 @@ public class Partenaireuba implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
-    @Column(name = "gtptoken")
-    private String gtptoken;
-    @Column(name = "requestid")
-    private Integer requestid;
+   
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Column(name = "usdeur")
     private Float usdeur;
@@ -55,10 +52,7 @@ public class Partenaireuba implements Serializable {
     private Float usdzar;
     @Column(name = "usdaed")
     private Float usdaed;
-    @Column(name = "appliname")
-    private String appliname;
-    @Column(name = "fromcustomerdi")
-    private Integer fromcustomerdi;
+    
 
     public Partenaireuba() {
     }
@@ -75,21 +69,7 @@ public class Partenaireuba implements Serializable {
         this.id = id;
     }
 
-    public String getGtptoken() {
-        return gtptoken;
-    }
-
-    public void setGtptoken(String gtptoken) {
-        this.gtptoken = gtptoken;
-    }
-
-    public Integer getRequestid() {
-        return requestid;
-    }
-
-    public void setRequestid(Integer requestid) {
-        this.requestid = requestid;
-    }
+   
 
     public Float getUsdeur() {
         return usdeur;
@@ -155,21 +135,7 @@ public class Partenaireuba implements Serializable {
         this.usdaed = usdaed;
     }
 
-    public String getAppliname() {
-        return appliname;
-    }
-
-    public void setAppliname(String appliname) {
-        this.appliname = appliname;
-    }
-
-    public Integer getFromcustomerdi() {
-        return fromcustomerdi;
-    }
-
-    public void setFromcustomerdi(Integer fromcustomerdi) {
-        this.fromcustomerdi = fromcustomerdi;
-    }
+    
 
     @Override
     public int hashCode() {
