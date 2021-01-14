@@ -19,10 +19,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author Carlos TCHIOZEM
+ * @author IPLANS-DEV
  */
 @Entity
-@Table(name = "infopayment",catalog = "perfectpay", schema = "")
+@Table(name = "infopayment")
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Infopayment.findAll", query = "SELECT i FROM Infopayment i")})
@@ -50,6 +50,8 @@ public class Infopayment implements Serializable {
     private String compteClient;
     @Column(name = "notif_token")
     private String notifToken;
+    @Column(name = "index")
+    private String index;
 
     public Infopayment() {
     }
@@ -128,6 +130,14 @@ public class Infopayment implements Serializable {
 
     public void setNotifToken(String notifToken) {
         this.notifToken = notifToken;
+    }
+
+    public String getIndex() {
+        return index;
+    }
+
+    public void setIndex(String index) {
+        this.index = index;
     }
 
     @Override

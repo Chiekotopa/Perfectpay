@@ -299,7 +299,105 @@ public class MobilPayService {
         infopayRepository.save(infopayment);
         return ipo;
     }
+    
+    
+    //paiement Orange money pour Gedomed
+      @ResponseBody
+    @RequestMapping(value = "/orange-money-gedomed/{Telephone}/{amount}/{codeClient}/{codeApi}/{nomProjet}/{operateur}/{index}", method = RequestMethod.POST)
+    public InfoPayOrange InitOrangePaymentGedomed(@PathVariable(value = "codeClient") String codeClient,
+            @PathVariable(value = "codeApi") String codeApi, @PathVariable(value = "nomProjet") String nomProjet,
+            @PathVariable(value = "Telephone") String Telephone,
+            @PathVariable(value = "amount") String amount,
+            @PathVariable(value = "operateur") String operateur,
+             @PathVariable(value = "index") String index,
+              @RequestBody Pojo pojo) {
+        Transtatus transtatus = new Transtatus();
+        InfoPayOrange infoPayOrange = new InfoPayOrange();
+        Infopayment infopayment = new Infopayment();
+        Tokenom tokenom = new Tokenom();
+        Partenaire partenaire = new Partenaire();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
+        tokenom = tokenomRepository.getOne(1);
+        String curentdate = sdf.format(new Date(System.currentTimeMillis()));
+        String dateExpire = sdf.format(tokenom.getExpiresIn());
+        operateur = operateur.toUpperCase();
+        if (dateExpire.equals(curentdate)) {
+            System.out.println(curentdate + " " + dateExpire);
+            System.out.println("change date");
+        } else {
+            System.out.println(curentdate + " " + dateExpire);
+        }
+
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-2")) {
+            infoPayOrange.setMessage("-2");
+            return infoPayOrange;
+        }
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-3")) {
+            infoPayOrange.setMessage("-3");
+            return infoPayOrange;
+        }
+
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-4")) {
+            infoPayOrange.setMessage("-4");
+            return infoPayOrange;
+        }
+        if (!"ORANGE".equals(operateur)) {
+            infoPayOrange.setMessage("Opérateur ne correspond pas");
+            return infoPayOrange;
+        }
+
+        if (partenaireRepository.findByOmReference(nomProjet) == null) {
+            partenaire.setOmReference(nomProjet.toUpperCase());
+            partenaire.setOrderId(1);
+            partenaireRepository.save(partenaire);
+        }
+        partenaire = partenaireRepository.findByOmReference(nomProjet.toUpperCase());
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        pojo.setAmount(amount);
+        pojo.setCurrency("XAF");
+        pojo.setMerchant_key("66b0ed55");
+        pojo.setReference(partenaire.getOmReference());
+        pojo.setOrder_id("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
+        pojo.setNotif_url("http://192.168.40.113:8081/Perfectpay/rest/api/paiement/orangeResponse");
+        partenaire.setOrderId(partenaire.getOrderId() + 1);
+        partenaireRepository.save(partenaire);
+
+        String url = "https://api.orange.com/orange-money-webpay/cm/v1/webpayment";
+        headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + tokenom.getAccessToken());
+        headers.set(HttpHeaders.ACCEPT, "application/json");
+
+        HttpEntity<Pojo> entity = new HttpEntity<>(pojo, headers);
+
+        InfoPayOrange ipo = restTemplate.postForObject(url, entity, InfoPayOrange.class);
+        transtatus.setOrderId(pojo.getOrder_id());
+        transtatus.setAmount(amount);
+        transtatus.setPayToken(ipo.getPay_token());
+        transtatus.setNomprojet(nomProjet);
+        transtatus.setPermission("1");
+        transtatus.setCodeclient(codeClient);
+        transtatus.setCodeapi(codeApi);
+        transtatus.setOperateur(operateur);
+        transtatus.setTel(Telephone);
+        transtatusRepository.save(transtatus);
+        
+        infopayment.setIndex(index);
+        infopayment.setCodeAPI(codeApi);
+        infopayment.setCodeClient(codeClient);
+        infopayment.setMontant(amount);
+        infopayment.setMoyenTransaction(operateur);
+        infopayment.setNotifToken(ipo.getNotif_token());
+        infopayment.setProjet(nomProjet);
+        infopayment.setTel(Telephone);
+
+        infopayRepository.save(infopayment);
+        return ipo;
+    }
+    
+    
     @ResponseBody
     @RequestMapping(value = "/orange-money-recharge/{Telephone}/{amount}/{codeClient}/{codeApi}/{nomProjet}/{operateur}/{compteClient}", method = RequestMethod.POST)
     public InfoPayOrange InitOrangePaymentRecharge(@PathVariable(value = "codeClient") String codeClient,
@@ -417,6 +515,33 @@ public class MobilPayService {
                 String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + infopayment.getCodeClient() + "&CodeAPI=" + infopayment.getCodeAPI()
                         + "&Projet=" + infopayment.getProjet()
                         + "&Montant=" + infopayment.getMontant() + "&MoyenTransaction=" + infopayment.getMoyenTransaction() + "&Telephone=" + infopayment.getTel() + "";
+                restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return "1";
+    }
+    
+     @ResponseBody
+    @RequestMapping(value = "/orangeResponseGedomed", method = RequestMethod.POST)
+    public String orangeResponseGedomed(@RequestBody ResOrange resOrange) {
+        System.out.println(resOrange.getStatus());
+        HttpHeaders headers = new HttpHeaders();
+        String body = "";
+        Tokenom tokenom = new Tokenom();
+
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        RestTemplate restTemplate = new RestTemplate();
+        if (resOrange.getStatus().equals("SUCCESS")) {
+            Infopayment infopayment = new Infopayment();
+
+            try {
+                infopayment = infopayRepository.findByNotifToken(resOrange.getNotif_token());
+                String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement="+infopayment.getIndex()+"&MoyenPaiement=Orange&montant="+infopayment.getMontant()+"";
                 restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
 
             } catch (Exception e) {
@@ -554,6 +679,82 @@ public class MobilPayService {
 
     }
 
+    
+    //paiement MOMO pour GEDOMED
+     @ResponseBody
+    @RequestMapping(value = "/mtn-money-gedomed/{Telephone}/{amount}/{codeClient}/{codeApi}/{nomProjet}/{operateur}/{index}", method = RequestMethod.GET)
+    public String InitpaiementGedomed(@PathVariable(value = "Telephone") String phonenumber, @PathVariable(value = "amount") Double amount,
+            @PathVariable(value = "codeClient") String codeClient, @PathVariable(value = "codeApi") String codeApi,
+            @PathVariable(value = "operateur") String operateur, @PathVariable(value = "nomProjet") String nomProjet,
+            @PathVariable(value = "index") String index) throws JSONException, IOException {
+        RestTemplate restTemplate = new RestTemplate();
+        PojoMb pojoMb = new PojoMb();
+        String etat;
+        HttpHeaders headers = new HttpHeaders();
+
+        InfoMonetbil monetbil = new InfoMonetbil();
+
+        monetbil.setService("FwDaTg1mnf7bt9NL6xfXVHa2Eay7Yhou");
+
+        monetbil.setPhonenumber(phonenumber);
+        monetbil.setAmount(amount);
+        String url = "https://api.monetbil.com/payment/v1/placePayment";
+        headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-2")) {
+
+            return "-2";
+        }
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-3")) {
+
+            return "-3";
+        }
+
+        if (verifClient(codeClient, codeApi, nomProjet).equals("-4")) {
+
+            return "-4";
+        }
+        if (!"MTN".equals(operateur.toUpperCase())) {
+            return "Opérateur ne correspond pas";
+        }
+        HttpEntity<InfoMonetbil> entity = new HttpEntity<>(monetbil, headers);
+
+        PojoMb p = restTemplate.postForObject(url, entity, PojoMb.class);
+
+        long startTime = System.currentTimeMillis();
+
+        while ((System.currentTimeMillis() - startTime) < 130000) {
+            try {
+                Thread.sleep(3000);
+
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            System.out.println(System.currentTimeMillis() - startTime);
+            etat = checkPaiement(p.getPaymentId());
+            System.out.println(etat);
+            if (etat.equals("1")) {
+                try {
+                    String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement="+index+"&MoyenPaiement=Mtn&montant="+amount+"";
+
+                    restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
+
+                } catch (Exception e) {
+                }
+
+                return etat;
+            } else if (etat.equals("-1")) {
+                return etat;
+            } else if (etat.equals("0")) {
+                return etat;
+            }
+        }
+
+        return "";
+
+    }
+
+    
     @ResponseBody
     @RequestMapping(value = "/mtn-money-recharge/{Telephone}/{amount}/{codeClient}/{codeApi}/{nomProjet}/{operateur}/{compteClient}", method = RequestMethod.GET)
     public String InitpaiementRecharge(@PathVariable(value = "Telephone") String phonenumber, @PathVariable(value = "amount") Double amount,
@@ -792,8 +993,94 @@ public class MobilPayService {
         }
         return "redirect:" + cancel_url;
     }
+    
+    
+    //******************Paypal for GEDOMED   
+    @ResponseBody
+    @RequestMapping(method = RequestMethod.POST, value = "paypalGedomed/{index}")
+    public HashMap payGedomed(@RequestBody InfoPayPapal infoPayPapal, @PathVariable(value = "index")String index) {
+        HashMap<String, String> lienpay = new HashMap<String, String>();
 
-    //**********************************Pour autre Developpeurs voulant intégré paypal
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
+
+            lienpay.put("redirect", "-2");
+            return lienpay;
+        }
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
+
+            lienpay.put("redirect", "-3");
+            return lienpay;
+        }
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
+
+            lienpay.put("redirect", "-4");
+            return lienpay;
+        }
+        String cancelUrl = infoPayPapal.getUrl_cancel();
+        String successUrl = "http://192.168.40.113:8081/Perfectpay/rest/api/paiement/ConfirmPayGedomed?url_return=" + infoPayPapal.getUrl_return()
+                + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
+                + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount() 
+                + "&index="+index+"";
+        System.out.println(infoPayPapal.getAmount());
+
+        try {
+            Payment payment = paypalService.createPayment(
+                    infoPayPapal.getAmount(),
+                    "USD",
+                    PaypalPaymentMethod.paypal,
+                    PaypalPaymentIntent.sale,
+                    "payment description",
+                    cancelUrl,
+                    successUrl);
+
+            for (Links links : payment.getLinks()) {
+                if (links.getRel().equals("approval_url")) {
+                    lienpay.put("redirect", links.getHref());
+                    return lienpay;
+                }
+            }
+        } catch (PayPalRESTException e) {
+            log.error(e.getMessage());
+        }
+        lienpay.put("redirect", "empty");
+        return lienpay;
+
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "ConfirmPayGedomed")
+    public String successPayGedomed(@RequestParam("url_return") String url_return, @RequestParam("codeClient") String codeClient,
+            @RequestParam("codeApi") String codeApi, @RequestParam("Projet") String Projet, @RequestParam("moyenTransaction") String moyenTransaction,
+            @RequestParam("compteClient") String compteClient, @RequestParam("cancel_url") String cancel_url,
+            @RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId, @RequestParam("amount") Double amount, @RequestParam("index") String index) {
+        InfoPayOrange payOrange = new InfoPayOrange();
+        RestTemplate restTemplate = new RestTemplate();
+        InfoPayPapal infoPayPapal = new InfoPayPapal();
+        HttpHeaders headers = new HttpHeaders();
+
+        HttpEntity<InfoPayPapal> entity = new HttpEntity<>(infoPayPapal, headers);
+
+        try {
+
+            Payment payment = paypalService.executePayment(paymentId, payerId);
+            if (payment.getState().equals("approved")) {
+
+                System.out.print(payment.getState());
+                System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
+                System.out.print(codeApi);
+                String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement="+index+"&MoyenPaiement=Paypal&montant="+amount+"";
+
+                ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
+                System.out.println(response);
+                return "redirect:" + url_return;
+
+            }
+        } catch (PayPalRESTException e) {
+            log.error(e.getMessage());
+        }
+        return "redirect:" + cancel_url;
+    }
+
+    //**********************************Pour autres Developpeurs voulant intégré paypal
     @ResponseBody
     @RequestMapping(method = RequestMethod.GET, value = "checkPaypal")
     public String checkPaypa(@RequestBody InfoPayPapal ipp,
