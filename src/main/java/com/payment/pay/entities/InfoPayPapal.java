@@ -12,7 +12,7 @@ package com.payment.pay.entities;
 public class InfoPayPapal {
     
  private String amount;
- private String url_return,url_cancel,codeClient,codeApi,projet,moyenTransaction,compteClient;
+ private String url_return,url_cancel,codeClient,codeApi,projet,moyenTransaction,compteClient,phone;
 
     public InfoPayPapal() {
     }
@@ -79,6 +79,14 @@ public class InfoPayPapal {
 
     public void setCompteClient(String compteClient) {
         this.compteClient = compteClient;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
  
  

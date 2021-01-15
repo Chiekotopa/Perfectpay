@@ -909,7 +909,96 @@ public class MobilPayService {
         return "";
     }
 
-    //Paiement Paypal ------------------------------------------------------------------------------------------------
+    
+    //Paypal Paiement  ------------------------------------------------------------------------------------------------
+     @ResponseBody
+    @RequestMapping(method = RequestMethod.POST, value = "paypalPayment")
+    public HashMap paypalPayment(@RequestBody InfoPayPapal infoPayPapal) {
+        HashMap<String, String> lienpay = new HashMap<String, String>();
+
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
+
+            lienpay.put("redirect", "-2");
+            return lienpay;
+        }
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
+
+            lienpay.put("redirect", "-3");
+            return lienpay;
+        }
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
+
+            lienpay.put("redirect", "-4");
+            return lienpay;
+        }
+        String cancelUrl = infoPayPapal.getUrl_cancel();
+        String successUrl = "http://192.168.40.113:8081/Perfectpay/rest/api/paiement/ConfirmPayment?url_return=" + infoPayPapal.getUrl_return()
+                + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
+                + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount() 
+                + "&telephone="+infoPayPapal.getPhone()+"";
+        System.out.println(infoPayPapal.getAmount());
+
+        try {
+            Payment payment = paypalService.createPayment(
+                    infoPayPapal.getAmount(),
+                    "USD",
+                    PaypalPaymentMethod.paypal,
+                    PaypalPaymentIntent.sale,
+                    "payment description",
+                    cancelUrl,
+                    successUrl);
+
+            for (Links links : payment.getLinks()) {
+                if (links.getRel().equals("approval_url")) {
+                    lienpay.put("redirect", links.getHref());
+                    return lienpay;
+                }
+            }
+        } catch (PayPalRESTException e) {
+            log.error(e.getMessage());
+        }
+        lienpay.put("redirect", "empty");
+        return lienpay;
+
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "ConfirmPayment")
+    public String successPayment(@RequestParam("url_return") String url_return, @RequestParam("codeClient") String codeClient,
+            @RequestParam("codeApi") String codeApi, @RequestParam("Projet") String Projet, @RequestParam("moyenTransaction") String moyenTransaction,
+            @RequestParam("compteClient") String compteClient, @RequestParam("cancel_url") String cancel_url,
+            @RequestParam("paymentId") String paymentId, 
+            @RequestParam("PayerID") String payerId, @RequestParam("amount") Double amount, @RequestParam("telephone") String telephone) {
+        InfoPayOrange payOrange = new InfoPayOrange();
+        RestTemplate restTemplate = new RestTemplate();
+        InfoPayPapal infoPayPapal = new InfoPayPapal();
+        HttpHeaders headers = new HttpHeaders();
+
+        HttpEntity<InfoPayPapal> entity = new HttpEntity<>(infoPayPapal, headers);
+
+        try {
+
+            Payment payment = paypalService.executePayment(paymentId, payerId);
+            if (payment.getState().equals("approved")) {
+
+                System.out.print(payment.getState());
+                System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
+                System.out.print(codeApi);
+               String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet
+                            + "&Montant=" + amount + "&MoyenTransaction=Paypal&Telephone=" + telephone + "";
+                ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
+                System.out.println(response);
+                return "redirect:" + url_return;
+
+            }
+        } catch (PayPalRESTException e) {
+            log.error(e.getMessage());
+        }
+        return "redirect:" + cancel_url;
+    }
+    
+    
+    
+    // Paypal Recharge  ------------------------------------------------------------------------------------------------
     @ResponseBody
     @RequestMapping(method = RequestMethod.POST, value = "paypal")
     public HashMap pay(@RequestBody InfoPayPapal infoPayPapal) {
