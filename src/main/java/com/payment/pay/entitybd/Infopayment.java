@@ -22,7 +22,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Carlos TCHIOZEM
  */
 @Entity
-@Table(name = "infopayment")
+@Table(name = "infopayment",catalog = "perfectpay", schema = "")
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Infopayment.findAll", query = "SELECT i FROM Infopayment i")})
@@ -50,8 +50,8 @@ public class Infopayment implements Serializable {
     private String compteClient;
     @Column(name = "notif_token")
     private String notifToken;
-    @Column(name = "index")
-    private String index;
+    @Column(name = "indexpay")
+    private String indexpay;
 
     public Infopayment() {
     }
@@ -132,12 +132,12 @@ public class Infopayment implements Serializable {
         this.notifToken = notifToken;
     }
 
-    public String getIndex() {
-        return index;
+    public String getIndexpay() {
+        return indexpay;
     }
 
-    public void setIndex(String index) {
-        this.index = index;
+    public void setIndexpay(String indexpay) {
+        this.indexpay = indexpay;
     }
 
     @Override

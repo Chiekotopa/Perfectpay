@@ -384,7 +384,7 @@ public class MobilPayService {
         transtatus.setTel(Telephone);
         transtatusRepository.save(transtatus);
         
-        infopayment.setIndex(index);
+        infopayment.setIndexpay(index);
         infopayment.setCodeAPI(codeApi);
         infopayment.setCodeClient(codeClient);
         infopayment.setMontant(amount);
@@ -541,7 +541,7 @@ public class MobilPayService {
 
             try {
                 infopayment = infopayRepository.findByNotifToken(resOrange.getNotif_token());
-                String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement="+infopayment.getIndex()+"&MoyenPaiement=Orange&montant="+infopayment.getMontant()+"";
+                String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement="+infopayment.getIndexpay()+"&MoyenPaiement=Orange&montant="+infopayment.getMontant()+"";
                 restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
 
             } catch (Exception e) {
