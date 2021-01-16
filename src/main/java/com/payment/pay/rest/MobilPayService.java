@@ -361,7 +361,7 @@ public class MobilPayService {
         pojo.setMerchant_key("66b0ed55");
         pojo.setReference(partenaire.getOmReference());
         pojo.setOrder_id("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
-        pojo.setNotif_url("http://192.168.40.113:8081/Perfectpay/rest/api/paiement/orangeResponse");
+        pojo.setNotif_url("http://192.168.40.113:8081/Perfectpay/rest/api/paiement/orangeResponseGedomed");
         partenaire.setOrderId(partenaire.getOrderId() + 1);
         partenaireRepository.save(partenaire);
 
