@@ -1218,17 +1218,17 @@ public class MobilPayService {
     //Api debit du client via perfectPay*******************************************************
     @ResponseBody
     @RequestMapping(method = RequestMethod.POST, value = "initDebitClientPefectPay")
-    public String initTransDebitClientPefectPay(@RequestBody Sessiontrans sessiontrans) {
+    public Responses initTransDebitClientPefectPay(@RequestBody Sessiontrans sessiontrans) {
         Responses responses = new Responses();
         if (ussdservice.checkerCompteClientetrait(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire()) != null) {
             responses = ussdservice.checkerCompteClientetrait(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire());
             if (responses.getSucces() == -2) {
 
-                return responses.getMsg();
+                return responses;
             }
             if (responses.getSucces() == -1) {
 
-                return responses.getMsg();
+                return responses;
             }
         }
 
@@ -1236,7 +1236,7 @@ public class MobilPayService {
             responses = ussdservice.checkerSoldeExpediteurRetrait(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire(), sessiontrans.getMontant());
             if (responses.getSucces() == -2) {
 
-                return responses.getMsg();
+                return responses;
             }
 
         }
@@ -1244,7 +1244,7 @@ public class MobilPayService {
             responses = ussdservice.validationInitilisationRretraitAccountPerfectPay(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire(), sessiontrans.getMontant(), sessiontrans.getCodesecret());
             if (responses.getSucces() == -2) {
                 responses.setMsg("Votre code secret est incorrect");
-                return responses.getMsg();
+                return responses;
             }
 
             if (responses.getSucces() == 1) {
@@ -1256,12 +1256,12 @@ public class MobilPayService {
                 multiThread.setphone(sessiontrans.getPhonedestinataire());
                 multiThread.setphoneExp(sessiontrans.getPhoneagent());
                 multiThread.start();
-                return responses.getMsg();
+                return responses;
             }
 
         }
 
-        return "";
+        return responses;
     }
 
     //**********************************************************Api integrations paiement perfectPay
