@@ -561,6 +561,7 @@ public class MobilPayService {
         String body = "";
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
         RestTemplate restTemplate = new RestTemplate();
+        
 
         if (resOrange.getStatus().equals("SUCCESS")) {
             Infopayment infopayment = new Infopayment();
@@ -1004,21 +1005,21 @@ public class MobilPayService {
     public HashMap pay(@RequestBody InfoPayPapal infoPayPapal) {
         HashMap<String, String> lienpay = new HashMap<String, String>();
 
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
-
-            lienpay.put("redirect", "-2");
-            return lienpay;
-        }
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
-
-            lienpay.put("redirect", "-3");
-            return lienpay;
-        }
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
-
-            lienpay.put("redirect", "-4");
-            return lienpay;
-        }
+//        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
+//
+//            lienpay.put("redirect", "-2");
+//            return lienpay;
+//        }
+//        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
+//
+//            lienpay.put("redirect", "-3");
+//            return lienpay;
+//        }
+//        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
+//
+//            lienpay.put("redirect", "-4");
+//            return lienpay;
+//        }
         String cancelUrl = infoPayPapal.getUrl_cancel();
         String successUrl = "http://192.168.40.113:8081/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
@@ -1173,25 +1174,16 @@ public class MobilPayService {
     @ResponseBody
     @RequestMapping(method = RequestMethod.GET, value = "checkPaypal")
     public String checkPaypa(@RequestBody InfoPayPapal ipp,
-            @RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId) {
+            @RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId,@RequestParam("CodeClient") String CodeClient,@RequestParam("CodeAPI") String CodeAPI,
+            @RequestParam("Projet") String Projet,@RequestParam("Montant") Double Montant,
+            @RequestParam("MoyenTransaction") String MoyenTransaction,@RequestParam("Compte_client") String CompteClient) {
         InfoPayOrange payOrange = new InfoPayOrange();
         RestTemplate restTemplate = new RestTemplate();
         InfoPayPapal infoPayPapal = new InfoPayPapal();
         HttpHeaders headers = new HttpHeaders();
 
         HttpEntity<InfoPayPapal> entity = new HttpEntity<>(infoPayPapal, headers);
-        if (verifClient(ipp.getCodeClient(), ipp.getCodeApi(), ipp.getProjet()).equals("-2")) {
-
-            return "-2";
-        }
-        if (verifClient(ipp.getCodeClient(), ipp.getCodeApi(), ipp.getProjet()).equals("-3")) {
-
-            return "-3";
-        }
-        if (verifClient(ipp.getCodeClient(), ipp.getCodeApi(), ipp.getProjet()).equals("-3")) {
-
-            return "-4";
-        }
+        
         try {
 
             Payment payment = paypalService.executePayment(paymentId, payerId);
@@ -1200,9 +1192,9 @@ public class MobilPayService {
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(ipp.getCodeApi());
-                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + ipp.getCodeClient()
-                        + "&CodeAPI=" + ipp.getCodeApi() + "&Projet=" + ipp.getProjet() + ""
-                        + "&Montant=" + ipp.getAmount() + "&MoyenTransaction=" + ipp.getMoyenTransaction() + "&Compte_client=" + ipp.getCompteClient() + "";
+                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + CodeClient
+                        + "&CodeAPI=" + CodeAPI + "&Projet=" + Projet + ""
+                        + "&Montant=" + Montant*543.03 + "&MoyenTransaction=" + MoyenTransaction + CompteClient + "";
 
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
                 System.out.println(response);
