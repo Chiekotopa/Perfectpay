@@ -31,7 +31,7 @@ import com.payment.pay.entities.Responses;
 import com.payment.pay.entities.Token;
 import com.payment.pay.entitybd.Api;
 import com.payment.pay.entitybd.Clients;
-import com.payment.pay.entitybd.DeviseMonaie;
+import com.payment.pay.entitybd.Devisemonaies;
 import com.payment.pay.entitybd.Infopayment;
 import com.payment.pay.entitybd.Partenaire;
 import com.payment.pay.entitybd.Services;
@@ -1017,21 +1017,21 @@ public class MobilPayService {
     public HashMap pay(@RequestBody InfoPayPapal infoPayPapal) {
         HashMap<String, String> lienpay = new HashMap<String, String>();
 
-//        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
-//
-//            lienpay.put("redirect", "-2");
-//            return lienpay;
-//        }
-//        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
-//
-//            lienpay.put("redirect", "-3");
-//            return lienpay;
-//        }
-//        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
-//
-//            lienpay.put("redirect", "-4");
-//            return lienpay;
-//        }
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
+
+            lienpay.put("redirect", "-2");
+            return lienpay;
+        }
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
+
+            lienpay.put("redirect", "-3");
+            return lienpay;
+        }
+        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
+
+            lienpay.put("redirect", "-4");
+            return lienpay;
+        }
         String cancelUrl = infoPayPapal.getUrl_cancel();
         String successUrl = "http://192.168.40.113:8081/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
@@ -1548,10 +1548,11 @@ public class MobilPayService {
     @ResponseBody
     @RequestMapping(value = "getOnlineDevises/{devise}", method = RequestMethod.GET)
     public String  getDevise(@PathVariable("devise") String devise) {
-        String CURRENCY_LAYER_ACCESS_KEY = "9569c970bf7bd4b52f31cd1f61c458ee";
+       
         String source = null;
         String format = "1";
-        DeviseMonaie deviseMonaie=new DeviseMonaie();
+        Devisemonaies deviseMonaies=new Devisemonaies();
+        deviseMonaies=deviseMonaieRepository.getOne(1);
         String currencies = null;
         try {
              if (devise.equals("DOLLAR")) {
@@ -1591,7 +1592,7 @@ public class MobilPayService {
             currencies = "USD,EUR,XOF,CAD,GBP,AED,CNY,ZAR";
         }
        
-        String url = "https://apilayer.net/api/live?access_key=" + CURRENCY_LAYER_ACCESS_KEY + "&currencies=" + currencies + "&source=" + source + "&form at=" + format;
+        String url = "http://apilayer.net/api/live?access_key=" + deviseMonaies.getKeydevise() + "&currencies=" + currencies + "&source=" + source + "&format=" + format;
         CloseableHttpClient httpclient = HttpClients.createDefault();
         
         HttpGet httpget = new HttpGet(url);
@@ -1619,15 +1620,16 @@ public class MobilPayService {
                     if (obj.has("success")) {
                         if (obj.getBoolean("success")) {
                             JSONObject quotes = (JSONObject) obj.get("quotes");
-                            deviseMonaie.setUsdLivreSterling(Float.valueOf(quotes.getString("USDGBP")));
-                            deviseMonaie.setUsdaed(Float.valueOf(quotes.getString("USDAED")));
-                            deviseMonaie.setUsdcad(Float.valueOf(quotes.getString("USDCAD")));
-                            deviseMonaie.setUsdeur(Float.valueOf(quotes.getString("USDEUR")));
-                            deviseMonaie.setUsdnaira(Float.valueOf(quotes.getString("USDNGN")));
-                            deviseMonaie.setUsdxof(Float.valueOf(quotes.getString("USDXOF")));
-                            deviseMonaie.setUsdyuan(Float.valueOf(quotes.getString("USDCNY")));
-                            deviseMonaie.setUsdzar(Float.valueOf(quotes.getString("USDZAR")));
-                            deviseMonaieRepository.save(deviseMonaie);
+                            deviseMonaies.setUsdLivreSterling(Float.valueOf(quotes.getString("USDGBP")));
+                            deviseMonaies.setUsdaed(Float.valueOf(quotes.getString("USDAED")));
+                            deviseMonaies.setUsdcad(Float.valueOf(quotes.getString("USDCAD")));
+                            deviseMonaies.setUsdeur(Float.valueOf(quotes.getString("USDEUR")));
+                            deviseMonaies.setUsdnaira(Float.valueOf(quotes.getString("USDNGN")));
+                            deviseMonaies.setUsdxof(Float.valueOf(quotes.getString("USDXOF")));
+                            deviseMonaies.setUsdyuan(Float.valueOf(quotes.getString("USDCNY")));
+                            deviseMonaies.setUsdzar(Float.valueOf(quotes.getString("USDZAR")));
+                            deviseMonaies.setRequestnumber(deviseMonaies.getRequestnumber()+1);
+                            deviseMonaieRepository.save(deviseMonaies);
                             return quotes.toString();
                                     
                             //req.updateDevise(Float.valueOf(quotes.getString("USDEUR")), Float.valueOf(quotes.getString("USDXOF")), Float.valueOf(quotes.getString("USDCAD")), Float.valueOf(quotes.getString("USDCNY")), Float.valueOf(quotes.getString("USDGBP")), Float.valueOf(quotes.getString("USDAED")), Float.valueOf(quotes.getString("USDZAR")), Float.valueOf(quotes.getString("USDNGN")));

@@ -19,12 +19,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author Administrateur
+ * @author Carlos TCHIOZEM
  */
 @Entity
-@Table(name = "devisemonaies", catalog = "perfectpay", schema = "")
-
-public class DeviseMonaie implements Serializable {
+@Table(name = "devisemonaies")
+@XmlRootElement
+@NamedQueries({
+    @NamedQuery(name = "Devisemonaies.findAll", query = "SELECT d FROM Devisemonaies d")})
+public class Devisemonaies implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -32,30 +34,32 @@ public class DeviseMonaie implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
-   
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
-    @Column(name = "usdeur")
-    private Float usdeur;
-    @Column(name = "usdxof")
-    private Float usdxof;
     @Column(name = "usdLivreSterling")
     private Float usdLivreSterling;
-    @Column(name = "usdnaira")
-    private Float usdnaira;
-    @Column(name = "usdyuan")
-    private Float usdyuan;
-    @Column(name = "usdcad")
-    private Float usdcad;
-    @Column(name = "usdzar")
-    private Float usdzar;
     @Column(name = "usdaed")
     private Float usdaed;
-    
+    @Column(name = "usdcad")
+    private Float usdcad;
+    @Column(name = "usdeur")
+    private Float usdeur;
+    @Column(name = "usdnaira")
+    private Float usdnaira;
+    @Column(name = "usdxof")
+    private Float usdxof;
+    @Column(name = "usdyuan")
+    private Float usdyuan;
+    @Column(name = "usdzar")
+    private Float usdzar;
+    @Column(name = "requestnumber")
+    private Integer requestnumber;
+    @Column(name = "keydevise")
+    private String keydevise;
 
-    public DeviseMonaie() {
+    public Devisemonaies() {
     }
 
-    public DeviseMonaie(Integer id) {
+    public Devisemonaies(Integer id) {
         this.id = id;
     }
 
@@ -67,62 +71,12 @@ public class DeviseMonaie implements Serializable {
         this.id = id;
     }
 
-   
-
-    public Float getUsdeur() {
-        return usdeur;
-    }
-
-    public void setUsdeur(Float usdeur) {
-        this.usdeur = usdeur;
-    }
-
-    public Float getUsdxof() {
-        return usdxof;
-    }
-
-    public void setUsdxof(Float usdxof) {
-        this.usdxof = usdxof;
-    }
-
     public Float getUsdLivreSterling() {
         return usdLivreSterling;
     }
 
     public void setUsdLivreSterling(Float usdLivreSterling) {
         this.usdLivreSterling = usdLivreSterling;
-    }
-
-    public Float getUsdnaira() {
-        return usdnaira;
-    }
-
-    public void setUsdnaira(Float usdnaira) {
-        this.usdnaira = usdnaira;
-    }
-
-    public Float getUsdyuan() {
-        return usdyuan;
-    }
-
-    public void setUsdyuan(Float usdyuan) {
-        this.usdyuan = usdyuan;
-    }
-
-    public Float getUsdcad() {
-        return usdcad;
-    }
-
-    public void setUsdcad(Float usdcad) {
-        this.usdcad = usdcad;
-    }
-
-    public Float getUsdzar() {
-        return usdzar;
-    }
-
-    public void setUsdzar(Float usdzar) {
-        this.usdzar = usdzar;
     }
 
     public Float getUsdaed() {
@@ -133,7 +87,69 @@ public class DeviseMonaie implements Serializable {
         this.usdaed = usdaed;
     }
 
-    
+    public Float getUsdcad() {
+        return usdcad;
+    }
+
+    public void setUsdcad(Float usdcad) {
+        this.usdcad = usdcad;
+    }
+
+    public Float getUsdeur() {
+        return usdeur;
+    }
+
+    public void setUsdeur(Float usdeur) {
+        this.usdeur = usdeur;
+    }
+
+    public Float getUsdnaira() {
+        return usdnaira;
+    }
+
+    public void setUsdnaira(Float usdnaira) {
+        this.usdnaira = usdnaira;
+    }
+
+    public Float getUsdxof() {
+        return usdxof;
+    }
+
+    public void setUsdxof(Float usdxof) {
+        this.usdxof = usdxof;
+    }
+
+    public Float getUsdyuan() {
+        return usdyuan;
+    }
+
+    public void setUsdyuan(Float usdyuan) {
+        this.usdyuan = usdyuan;
+    }
+
+    public Float getUsdzar() {
+        return usdzar;
+    }
+
+    public void setUsdzar(Float usdzar) {
+        this.usdzar = usdzar;
+    }
+
+    public Integer getRequestnumber() {
+        return requestnumber;
+    }
+
+    public void setRequestnumber(Integer requestnumber) {
+        this.requestnumber = requestnumber;
+    }
+
+    public String getKeydevise() {
+        return keydevise;
+    }
+
+    public void setKeydevise(String keydevise) {
+        this.keydevise = keydevise;
+    }
 
     @Override
     public int hashCode() {
@@ -145,10 +161,10 @@ public class DeviseMonaie implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof DeviseMonaie)) {
+        if (!(object instanceof Devisemonaies)) {
             return false;
         }
-        DeviseMonaie other = (DeviseMonaie) object;
+        Devisemonaies other = (Devisemonaies) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -157,7 +173,7 @@ public class DeviseMonaie implements Serializable {
 
     @Override
     public String toString() {
-        return "com.payment.pay.entitybd.Partenaireuba[ id=" + id + " ]";
+        return "com.payment.pay.entitybd.Devisemonaies[ id=" + id + " ]";
     }
     
 }

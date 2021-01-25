@@ -5,13 +5,13 @@
  */
 package com.payment.pay.dao;
 
-import com.payment.pay.entitybd.DeviseMonaie;
+import com.payment.pay.entitybd.Devisemonaies;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  *
  * @author Administrateur
  */
-public interface DeviseMonaieRepository extends JpaRepository<DeviseMonaie, Integer> {
+public interface DeviseMonaieRepository extends JpaRepository<Devisemonaies, Integer> {
     
 }
