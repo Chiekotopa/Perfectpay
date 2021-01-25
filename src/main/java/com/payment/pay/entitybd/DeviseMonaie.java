@@ -22,11 +22,9 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Administrateur
  */
 @Entity
-@Table(name = "partenaireuba", catalog = "perfectpay", schema = "")
-@XmlRootElement
-@NamedQueries({
-    @NamedQuery(name = "Partenaireuba.findAll", query = "SELECT p FROM Partenaireuba p")})
-public class Partenaireuba implements Serializable {
+@Table(name = "devisemonaies", catalog = "perfectpay", schema = "")
+
+public class DeviseMonaie implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -54,10 +52,10 @@ public class Partenaireuba implements Serializable {
     private Float usdaed;
     
 
-    public Partenaireuba() {
+    public DeviseMonaie() {
     }
 
-    public Partenaireuba(Integer id) {
+    public DeviseMonaie(Integer id) {
         this.id = id;
     }
 
@@ -147,10 +145,10 @@ public class Partenaireuba implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Partenaireuba)) {
+        if (!(object instanceof DeviseMonaie)) {
             return false;
         }
-        Partenaireuba other = (Partenaireuba) object;
+        DeviseMonaie other = (DeviseMonaie) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
