@@ -19,6 +19,7 @@ import com.payment.pay.dao.SessiontransRepository;
 import com.payment.pay.dao.SouscriptionRepository;
 import com.payment.pay.dao.TokenomRepository;
 import com.payment.pay.dao.TranstatusRepository;
+import com.payment.pay.entities.InfoPayMtn;
 import com.payment.pay.entities.InfoPayOrange;
 import com.payment.pay.entities.InfoPayPapal;
 import com.payment.pay.entities.InfoToken;
@@ -72,6 +73,7 @@ import com.payment.pay.gtplimited.AllServicesStub;
 import com.payment.pay.service.MultiThread;
 import com.payment.pay.service.PaypalService;
 import com.payment.pay.service.UssdService;
+import com.paypal.api.payments.Payer;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
@@ -85,19 +87,28 @@ import java.math.BigDecimal;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import javax.ws.rs.core.Response;
+import java.util.concurrent.Flow.Subscription;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 /**
  *
@@ -129,7 +140,7 @@ public class MobilPayService {
 
     @Autowired
     TranstatusRepository transtatusRepository;
-    
+
     @Autowired
     DeviseMonaieRepository deviseMonaieRepository;
 
@@ -311,18 +322,17 @@ public class MobilPayService {
         infopayRepository.save(infopayment);
         return ipo;
     }
-    
-    
+
     //paiement Orange money pour Gedomed
-      @ResponseBody
+    @ResponseBody
     @RequestMapping(value = "/orange-money-gedomed/{Telephone}/{amount}/{codeClient}/{codeApi}/{nomProjet}/{operateur}/{index}", method = RequestMethod.POST)
     public InfoPayOrange InitOrangePaymentGedomed(@PathVariable(value = "codeClient") String codeClient,
             @PathVariable(value = "codeApi") String codeApi, @PathVariable(value = "nomProjet") String nomProjet,
             @PathVariable(value = "Telephone") String Telephone,
             @PathVariable(value = "amount") String amount,
             @PathVariable(value = "operateur") String operateur,
-             @PathVariable(value = "index") String index,
-              @RequestBody Pojo pojo) {
+            @PathVariable(value = "index") String index,
+            @RequestBody Pojo pojo) {
         Transtatus transtatus = new Transtatus();
         InfoPayOrange infoPayOrange = new InfoPayOrange();
         Infopayment infopayment = new Infopayment();
@@ -395,7 +405,7 @@ public class MobilPayService {
         transtatus.setOperateur(operateur);
         transtatus.setTel(Telephone);
         transtatusRepository.save(transtatus);
-        
+
         infopayment.setIndexpay(index);
         infopayment.setCodeAPI(codeApi);
         infopayment.setCodeClient(codeClient);
@@ -408,8 +418,7 @@ public class MobilPayService {
         infopayRepository.save(infopayment);
         return ipo;
     }
-    
-    
+
     @ResponseBody
     @RequestMapping(value = "/orange-money-recharge/{Telephone}/{amount}/{codeClient}/{codeApi}/{nomProjet}/{operateur}/{compteClient}", method = RequestMethod.POST)
     public InfoPayOrange InitOrangePaymentRecharge(@PathVariable(value = "codeClient") String codeClient,
@@ -537,8 +546,8 @@ public class MobilPayService {
 
         return "1";
     }
-    
-     @ResponseBody
+
+    @ResponseBody
     @RequestMapping(value = "/orangeResponseGedomed", method = RequestMethod.POST)
     public String orangeResponseGedomed(@RequestBody ResOrange resOrange) {
         System.out.println(resOrange.getStatus());
@@ -553,7 +562,7 @@ public class MobilPayService {
 
             try {
                 infopayment = infopayRepository.findByNotifToken(resOrange.getNotif_token());
-                String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement="+infopayment.getIndexpay()+"&MoyenPaiement=Orange&montant="+infopayment.getMontant()+"";
+                String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement=" + infopayment.getIndexpay() + "&MoyenPaiement=Orange&montant=" + infopayment.getMontant() + "";
                 restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
 
             } catch (Exception e) {
@@ -573,7 +582,6 @@ public class MobilPayService {
         String body = "";
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
         RestTemplate restTemplate = new RestTemplate();
-        
 
         if (resOrange.getStatus().equals("SUCCESS")) {
             Infopayment infopayment = new Infopayment();
@@ -692,9 +700,8 @@ public class MobilPayService {
 
     }
 
-    
     //paiement MOMO pour GEDOMED
-     @ResponseBody
+    @ResponseBody
     @RequestMapping(value = "/mtn-money-gedomed/{Telephone}/{amount}/{codeClient}/{codeApi}/{nomProjet}/{operateur}/{index}", method = RequestMethod.GET)
     public String InitpaiementGedomed(@PathVariable(value = "Telephone") String phonenumber, @PathVariable(value = "amount") Double amount,
             @PathVariable(value = "codeClient") String codeClient, @PathVariable(value = "codeApi") String codeApi,
@@ -748,7 +755,7 @@ public class MobilPayService {
             System.out.println(etat);
             if (etat.equals("1")) {
                 try {
-                    String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement="+index+"&MoyenPaiement=Mtn&montant="+amount+"";
+                    String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement=" + index + "&MoyenPaiement=Mtn&montant=" + amount + "";
 
                     restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
 
@@ -767,7 +774,6 @@ public class MobilPayService {
 
     }
 
-    
     @ResponseBody
     @RequestMapping(value = "/mtn-money-recharge/{Telephone}/{amount}/{codeClient}/{codeApi}/{nomProjet}/{operateur}/{compteClient}", method = RequestMethod.GET)
     public String InitpaiementRecharge(@PathVariable(value = "Telephone") String phonenumber, @PathVariable(value = "amount") Double amount,
@@ -922,9 +928,8 @@ public class MobilPayService {
         return "";
     }
 
-    
     //Paypal Paiement  ------------------------------------------------------------------------------------------------
-     @ResponseBody
+    @ResponseBody
     @RequestMapping(method = RequestMethod.POST, value = "paypalPayment")
     public HashMap paypalPayment(@RequestBody InfoPayPapal infoPayPapal) {
         HashMap<String, String> lienpay = new HashMap<String, String>();
@@ -947,8 +952,8 @@ public class MobilPayService {
         String cancelUrl = infoPayPapal.getUrl_cancel();
         String successUrl = "http://192.168.40.113:8081/Perfectpay/rest/api/paiement/ConfirmPayment?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
-                + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount() 
-                + "&telephone="+infoPayPapal.getPhone()+"";
+                + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount()
+                + "&telephone=" + infoPayPapal.getPhone() + "";
         System.out.println(infoPayPapal.getAmount());
 
         try {
@@ -979,7 +984,7 @@ public class MobilPayService {
     public String successPayment(@RequestParam("url_return") String url_return, @RequestParam("codeClient") String codeClient,
             @RequestParam("codeApi") String codeApi, @RequestParam("Projet") String Projet, @RequestParam("moyenTransaction") String moyenTransaction,
             @RequestParam("compteClient") String compteClient, @RequestParam("cancel_url") String cancel_url,
-            @RequestParam("paymentId") String paymentId, 
+            @RequestParam("paymentId") String paymentId,
             @RequestParam("PayerID") String payerId, @RequestParam("amount") Double amount, @RequestParam("telephone") String telephone) {
         InfoPayOrange payOrange = new InfoPayOrange();
         RestTemplate restTemplate = new RestTemplate();
@@ -996,8 +1001,8 @@ public class MobilPayService {
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(codeApi);
-               String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet
-                            + "&Montant=" + amount + "&MoyenTransaction=Paypal&Telephone=" + telephone + "";
+                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet
+                        + "&Montant=" + amount + "&MoyenTransaction=Paypal&Telephone=" + telephone + "";
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
                 System.out.println(response);
                 return "redirect:" + url_return;
@@ -1008,9 +1013,7 @@ public class MobilPayService {
         }
         return "redirect:" + cancel_url;
     }
-    
-    
-    
+
     // Paypal Recharge  ------------------------------------------------------------------------------------------------
     @ResponseBody
     @RequestMapping(method = RequestMethod.POST, value = "paypal")
@@ -1095,12 +1098,11 @@ public class MobilPayService {
         }
         return "redirect:" + cancel_url;
     }
-    
-    
+
     //******************Paypal for GEDOMED   
     @ResponseBody
     @RequestMapping(method = RequestMethod.POST, value = "paypalGedomed/{index}")
-    public HashMap payGedomed(@RequestBody InfoPayPapal infoPayPapal, @PathVariable(value = "index")String index) {
+    public HashMap payGedomed(@RequestBody InfoPayPapal infoPayPapal, @PathVariable(value = "index") String index) {
         HashMap<String, String> lienpay = new HashMap<String, String>();
 
         if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
@@ -1121,8 +1123,8 @@ public class MobilPayService {
         String cancelUrl = infoPayPapal.getUrl_cancel();
         String successUrl = "http://192.168.40.113:8081/Perfectpay/rest/api/paiement/ConfirmPayGedomed?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
-                + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount() 
-                + "&index="+index+"";
+                + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount()
+                + "&index=" + index + "";
         System.out.println(infoPayPapal.getAmount());
 
         try {
@@ -1169,7 +1171,7 @@ public class MobilPayService {
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(codeApi);
-                String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement="+index+"&MoyenPaiement=Paypal&montant="+amount+"";
+                String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement=" + index + "&MoyenPaiement=Paypal&montant=" + amount + "";
 
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
                 System.out.println(response);
@@ -1186,17 +1188,16 @@ public class MobilPayService {
     @ResponseBody
     @RequestMapping(method = RequestMethod.GET, value = "checkPaypal/{paymentId}/{PayerID}/{CodeClient}/{CodeAPI}/{Projet}/{Montant}/{MoyenTransaction}/{CompteClient}")
     public String checkPaypa(
-            @PathVariable("paymentId") String paymentId, @PathVariable("PayerID") String payerId,@PathVariable("CodeClient") String CodeClient,@PathVariable("CodeAPI") String CodeAPI,
-            @PathVariable("Projet") String Projet,@PathVariable("Montant") Double Montant,
-            @PathVariable("MoyenTransaction") String MoyenTransaction,@PathVariable("CompteClient") String CompteClient) 
-    {
+            @PathVariable("paymentId") String paymentId, @PathVariable("PayerID") String payerId, @PathVariable("CodeClient") String CodeClient, @PathVariable("CodeAPI") String CodeAPI,
+            @PathVariable("Projet") String Projet, @PathVariable("Montant") Double Montant,
+            @PathVariable("MoyenTransaction") String MoyenTransaction, @PathVariable("CompteClient") String CompteClient) {
         InfoPayOrange payOrange = new InfoPayOrange();
         RestTemplate restTemplate = new RestTemplate();
         InfoPayPapal infoPayPapal = new InfoPayPapal();
         HttpHeaders headers = new HttpHeaders();
 
         HttpEntity<InfoPayPapal> entity = new HttpEntity<>(infoPayPapal, headers);
-        
+
         try {
 
             Payment payment = paypalService.executePayment(paymentId, payerId);
@@ -1204,10 +1205,10 @@ public class MobilPayService {
 
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
-            
+
                 String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + CodeClient
                         + "&CodeAPI=" + CodeAPI + "&Projet=" + Projet + ""
-                        + "&Montant=" + Montant*543.03 + "&MoyenTransaction=" + MoyenTransaction + CompteClient + "";
+                        + "&Montant=" + Montant * 543.03 + "&MoyenTransaction=" + MoyenTransaction + CompteClient + "";
 
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
                 System.out.println(response);
@@ -1363,156 +1364,6 @@ public class MobilPayService {
     }
 
 //// 
-//    @RequestMapping(value = "fundTransfertToCard/{userId}/{paymentType}/{amount}/{toCustomerId}/{currencyCode}/{last4Digits}", method = RequestMethod.GET)
-//    public Integer fundTransfertToCard(@PathVariable("userId") Integer userId, @PathVariable("paymentType") String paymentType, @PathVariable("amount") BigDecimal amount,
-//            @PathVariable("toCustomerId") Integer toCustomerId, @PathVariable("currencyCode") String currencyCode, @PathVariable("last4Digits") String last4Digits) {
-//        try {
-//            partenaire = partenaireService.find(PartenaireInfo.code);
-//            BaseRequestHeader brh = new BaseRequestHeader();
-//            brh.setSecurityToken(partenaire.getGtptoken());
-//            brh.setRequestID("" + partenaire.getRequestid());
-//            this.requestHeader.setRequestHeader(brh);
-//            com.payment.pay.gtplimited.BaseRequest baseRequest = (com.payment.pay.gtplimited.BaseRequest) getTestObject(com.payment.pay.gtplimited.BaseRequest.class);
-//            //FundTransferCardToCardRequest fundTransferCardToCardRequest= new FundTransferCardToCardRequest();
-//            FundTransferRequest fundTransferRequest = new FundTransferRequest();
-//            fundTransferRequest.setCustomerID(toCustomerId);
-//            fundTransferRequest.setLast4Digits(last4Digits);
-//            fundTransferRequest.setTransferType("WalletToCard");
-//            fundTransferRequest.setTransferAmount(amount);
-//            fundTransferRequest.setReferenceMemo("Recharge de la carte cliente : " + userId);
-//
-//            String source = "XOF";
-//            fundTransferRequest.setCurrencyCode("XAF");
-//            baseRequest.setRequestData(fundTransferRequest);
-//            Client client = clientService.findClient(userId);
-//            double solde = operationsService.getSoldeClient(client.getIdClient());
-//            double dollarAmount = amount.doubleValue();
-//            if (currencyCode.equals("DOLLAR")) {
-//                source = "USD";
-//                dollarAmount = amount.doubleValue();
-//            }
-//            if (currencyCode.equals("EURO")) {
-//                source = "EUR";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdeur();
-//            }
-//            if (currencyCode.equals("FCFA")) {
-//                source = "XOF";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdxof();
-//            }
-//            if (currencyCode.equals("CAD")) {
-//                source = "CAD";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdcad();
-//            }
-//            if (currencyCode.equals("YUAN")) {
-//                source = "CNY";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdyuan();
-//            }
-//            if (currencyCode.equals("Livre sterling")) {
-//                source = "GBP";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdLivreSterling();
-//            }
-//            if (currencyCode.equals("DIRHAM")) {
-//                source = "AED";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdaed();
-//            }
-//            if (currencyCode.equals("RAND")) {
-//                source = "ZAR";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdzar();
-//            }
-//            if (currencyCode.equals("NAIRA")) {
-//                source = "NGN";
-//                dollarAmount = amount.doubleValue() / partenaire.getUsdnaira();
-//            }
-//
-//            if (solde > (amount.doubleValue() / partenaire.getUsdxof())) {
-//                BaseResponse response = stub.submit(baseRequest, requestHeader);
-//                //response.ge
-//                if (response.getResponseData() instanceof FundTransferResponse) {
-//                    FundTransferResponse ftr = (FundTransferResponse) response.getResponseData();
-//                    this.crediter(client.getTelephone(), client.getTelephone(), dollarAmount, "retrait");
-//                    System.out.println("Good");
-//                    System.out.println(ftr.getTransactionID());
-//                } else if (response.getResponseData() instanceof ErrorResponse) {
-//                    ErrorResponse er = (ErrorResponse) response.getResponseData();
-//                    System.out.println(er.getErrorNumber());
-//                    System.out.println(er.getErrorMessage());
-//                    return -2;
-//
-//                }
-//            } else {
-//                return -3;
-//            }
-//        } catch (Exception e) {
-//            // TODO Auto-generated catch block 
-//            e.printStackTrace();
-//            return -1;
-//
-//        }
-//        BalanceRequest balanceR = new BalanceRequest();
-//
-//        return 0;
-//    }
-//    public int crediter(String numeroClient, String numeroDeposant, double montant, String type) {
-//        Operations operation = new Operations();
-//        BigDecimal amount = (new BigDecimal(montant)).setScale(4, BigDecimal.ROUND_DOWN);
-//        montant = amount.doubleValue();
-//        System.err.println(montant);
-//        if (numeroClient.equals(numeroDeposant)) {
-//            Client clientDeposant = clientService.findByTelephone(numeroDeposant);
-//            double solde = operationsService.getSoldeClient(clientDeposant.getIdClient());
-//            if (type.equals("credit")) {
-//                operation.setMontant(montant);
-//            } else if (type.equals("debit") || type.equals("retrait")) {
-//                if (solde < (montant + calculerCommission(montant))) {
-//                    return -1;
-//                }
-//                operation.setMontant(-(montant + calculerCommission(montant)));
-//            }
-//            operation.setIdClient(clientDeposant.getIdClient());
-//            operation.setIdDeposant(clientDeposant.getIdClient());
-//            operation.setType(type);
-//            operation.setDate(Calendar.getInstance().getTime());
-//            operationsService.create(operation);
-//            return 0;
-//        } else {
-//            Client client = clientService.findByTelephone(numeroClient);
-//            Client clientDeposant = clientService.findByTelephone(numeroDeposant);
-//            double solde = operationsService.getSoldeClient(clientDeposant.getIdClient());
-//            //this.em.getTransaction().begin();
-//            try {
-//                operation = new Operations();
-//                if (solde < (montant + calculerCommission(montant))) {
-//                    return -1;
-//                }
-//                operation.setIdClient(client.getIdClient());
-//                operation.setIdDeposant(clientDeposant.getIdClient());
-//                operation.setType(type);
-//                operation.setDate(Calendar.getInstance().getTime());
-//                if (type.equals("credit")) {
-//                    operation.setMontant(montant);
-//                } else if (type.equals("debit")) {
-//                    operation.setMontant(-montant);
-//                }
-//                operationsService.create(operation);
-//                operation = new Operations();
-//                operation.setIdClient(clientDeposant.getIdClient());
-//                operation.setIdDeposant(clientDeposant.getIdClient());
-//                operation.setDate(Calendar.getInstance().getTime());
-//                if (type.equals("credit")) {
-//                    operation.setMontant(-(montant + calculerCommission(montant)));
-//                    operation.setType("debit");
-//                } else if (type.equals("debit")) {
-//                    operation.setMontant((montant + calculerCommission(montant)));
-//                    operation.setType("credit");
-//                }
-//                operationsService.create(operation);
-//                //this.em.persist(operation); 
-//            } catch (Exception ex) {
-//                //this.em.getTransaction().rollback();
-//            }
-//            //this.em.getTransaction().commit();
-//            return 0;
-//        }
     @ResponseBody
     @RequestMapping(value = "/testGet", method = RequestMethod.GET)
     public HashMap TestGet() {
@@ -1547,124 +1398,231 @@ public class MobilPayService {
 
     @ResponseBody
     @RequestMapping(value = "getOnlineDevises/{devise}", method = RequestMethod.GET)
-    public String  getDevise(@PathVariable("devise") String devise) {
-       
+    public String getDevise(@PathVariable("devise") String devise) {
+
         String source = null;
         String format = "1";
-        Devisemonaies deviseMonaies=new Devisemonaies();
-        deviseMonaies=deviseMonaieRepository.getOne(1);
+        Devisemonaies deviseMonaies = new Devisemonaies();
+        deviseMonaies = deviseMonaieRepository.getOne(1);
         String currencies = null;
         try {
-             if (devise.equals("DOLLAR")) {
-            source = "USD";
-            currencies = "EUR,XOF,CAD,GBP,NGN,AED,CNY,ZAR";
-        }
-        if (devise.equals("EURO")) {
-            source = "EUR";
-            currencies = "USD,XOF,CAD,GBP,NGN,AED,CNY,ZAR";
-        }
-        if (devise.equals("FCFA")) {
-            source = "XOF";
-            currencies = "USD,EUR,CAD,GBP,NGN,AED,CNY,ZAR";
-        }
-        if (devise.equals("CAD")) {
-            source = "CAD";
-            currencies = "USD,EUR,XOF,GBP,NGN,AED,CNY,ZAR";
-        }
-        if (devise.equals("YUAN")) {
-            source = "CNY";
-            currencies = "USD,EUR,XOF,CAD,GBP,NGN,AED,ZAR";
-        }
-        if (devise.equals("Livre sterling")) {
-            source = "GBP";
-            currencies = "USD,EUR,XOF,CAD,NGN,AED,CNY,ZAR";
-        }
-        if (devise.equals("DIRHAM")) {
-            source = "AED";
-            currencies = "USD,EUR,XOF,CAD,GBP,NGN,CNY,ZAR";
-        }
-        if (devise.equals("RAND")) {
-            source = "ZAR";
-            currencies = "USD,EUR,XOF,CAD,GBP,NGN,AED,CNY";
-        }
-        if (devise.equals("NAIRA")) {
-            source = "NGN";
-            currencies = "USD,EUR,XOF,CAD,GBP,AED,CNY,ZAR";
-        }
-       
-        String url = "http://apilayer.net/api/live?access_key=" + deviseMonaies.getKeydevise() + "&currencies=" + currencies + "&source=" + source + "&format=" + format;
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        
-        HttpGet httpget = new HttpGet(url);
-        CloseableHttpResponse response;
-        try {
-            response = httpclient.execute(httpget);
-            System.out.println("1------------------------------------1");
-            System.out.println(response.getStatusLine());
-            System.out.println("1------------------------------------1");
+            if (devise.equals("DOLLAR")) {
+                source = "USD";
+                currencies = "EUR,XOF,CAD,GBP,NGN,AED,CNY,ZAR";
+            }
+            if (devise.equals("EURO")) {
+                source = "EUR";
+                currencies = "USD,XOF,CAD,GBP,NGN,AED,CNY,ZAR";
+            }
+            if (devise.equals("FCFA")) {
+                source = "XOF";
+                currencies = "USD,EUR,CAD,GBP,NGN,AED,CNY,ZAR";
+            }
+            if (devise.equals("CAD")) {
+                source = "CAD";
+                currencies = "USD,EUR,XOF,GBP,NGN,AED,CNY,ZAR";
+            }
+            if (devise.equals("YUAN")) {
+                source = "CNY";
+                currencies = "USD,EUR,XOF,CAD,GBP,NGN,AED,ZAR";
+            }
+            if (devise.equals("Livre sterling")) {
+                source = "GBP";
+                currencies = "USD,EUR,XOF,CAD,NGN,AED,CNY,ZAR";
+            }
+            if (devise.equals("DIRHAM")) {
+                source = "AED";
+                currencies = "USD,EUR,XOF,CAD,GBP,NGN,CNY,ZAR";
+            }
+            if (devise.equals("RAND")) {
+                source = "ZAR";
+                currencies = "USD,EUR,XOF,CAD,GBP,NGN,AED,CNY";
+            }
+            if (devise.equals("NAIRA")) {
+                source = "NGN";
+                currencies = "USD,EUR,XOF,CAD,GBP,AED,CNY,ZAR";
+            }
 
-            // Get hold of the response entity
-            org.apache.http.HttpEntity entity = response.getEntity();
+            String url = "http://apilayer.net/api/live?access_key=" + deviseMonaies.getKeydevise() + "&currencies=" + currencies + "&source=" + source + "&format=" + format;
+            CloseableHttpClient httpclient = HttpClients.createDefault();
 
-            // If the response does not enclose an entity, there is no need
-            // to bother about connection release
-            byte[] buffer = new byte[1024];
-            if (entity != null) {
-                System.out.println("response : " + entity);
-                InputStream inputStream = entity.getContent();
-                int bytesRead = 0;
-                BufferedInputStream bis = new BufferedInputStream(inputStream);
-                while ((bytesRead = bis.read(buffer)) != -1) {
-                    String chunk = new String(buffer, 0, bytesRead);
-                    JSONObject obj = new JSONObject(chunk);
-                    if (obj.has("success")) {
-                        if (obj.getBoolean("success")) {
-                            JSONObject quotes = (JSONObject) obj.get("quotes");
-                            deviseMonaies.setUsdLivreSterling(Float.valueOf(quotes.getString("USDGBP")));
-                            deviseMonaies.setUsdaed(Float.valueOf(quotes.getString("USDAED")));
-                            deviseMonaies.setUsdcad(Float.valueOf(quotes.getString("USDCAD")));
-                            deviseMonaies.setUsdeur(Float.valueOf(quotes.getString("USDEUR")));
-                            deviseMonaies.setUsdnaira(Float.valueOf(quotes.getString("USDNGN")));
-                            deviseMonaies.setUsdxof(Float.valueOf(quotes.getString("USDXOF")));
-                            deviseMonaies.setUsdyuan(Float.valueOf(quotes.getString("USDCNY")));
-                            deviseMonaies.setUsdzar(Float.valueOf(quotes.getString("USDZAR")));
-                            deviseMonaies.setRequestnumber(deviseMonaies.getRequestnumber()+1);
-                            deviseMonaieRepository.save(deviseMonaies);
-                            return quotes.toString();
-                                    
-                            //req.updateDevise(Float.valueOf(quotes.getString("USDEUR")), Float.valueOf(quotes.getString("USDXOF")), Float.valueOf(quotes.getString("USDCAD")), Float.valueOf(quotes.getString("USDCNY")), Float.valueOf(quotes.getString("USDGBP")), Float.valueOf(quotes.getString("USDAED")), Float.valueOf(quotes.getString("USDZAR")), Float.valueOf(quotes.getString("USDNGN")));
+            HttpGet httpget = new HttpGet(url);
+            CloseableHttpResponse response;
+            try {
+                response = httpclient.execute(httpget);
+                System.out.println("1------------------------------------1");
+                System.out.println(response.getStatusLine());
+                System.out.println("1------------------------------------1");
+
+                // Get hold of the response entity
+                org.apache.http.HttpEntity entity = response.getEntity();
+
+                // If the response does not enclose an entity, there is no need
+                // to bother about connection release
+                byte[] buffer = new byte[1024];
+                if (entity != null) {
+                    System.out.println("response : " + entity);
+                    InputStream inputStream = entity.getContent();
+                    int bytesRead = 0;
+                    BufferedInputStream bis = new BufferedInputStream(inputStream);
+                    while ((bytesRead = bis.read(buffer)) != -1) {
+                        String chunk = new String(buffer, 0, bytesRead);
+                        JSONObject obj = new JSONObject(chunk);
+                        if (obj.has("success")) {
+                            if (obj.getBoolean("success")) {
+                                JSONObject quotes = (JSONObject) obj.get("quotes");
+                                deviseMonaies.setUsdLivreSterling(Float.valueOf(quotes.getString("USDGBP")));
+                                deviseMonaies.setUsdaed(Float.valueOf(quotes.getString("USDAED")));
+                                deviseMonaies.setUsdcad(Float.valueOf(quotes.getString("USDCAD")));
+                                deviseMonaies.setUsdeur(Float.valueOf(quotes.getString("USDEUR")));
+                                deviseMonaies.setUsdnaira(Float.valueOf(quotes.getString("USDNGN")));
+                                deviseMonaies.setUsdxof(Float.valueOf(quotes.getString("USDXOF")));
+                                deviseMonaies.setUsdyuan(Float.valueOf(quotes.getString("USDCNY")));
+                                deviseMonaies.setUsdzar(Float.valueOf(quotes.getString("USDZAR")));
+                                deviseMonaies.setRequestnumber(deviseMonaies.getRequestnumber() + 1);
+                                deviseMonaieRepository.save(deviseMonaies);
+                                return quotes.toString();
+
+                                //req.updateDevise(Float.valueOf(quotes.getString("USDEUR")), Float.valueOf(quotes.getString("USDXOF")), Float.valueOf(quotes.getString("USDCAD")), Float.valueOf(quotes.getString("USDCNY")), Float.valueOf(quotes.getString("USDGBP")), Float.valueOf(quotes.getString("USDAED")), Float.valueOf(quotes.getString("USDZAR")), Float.valueOf(quotes.getString("USDNGN")));
+                            } else {
+                                return "-1";
+
+                            }
                         } else {
                             return "-1";
-                                
+
                         }
-                    } else {
-                        return "-1";
-                                
+                        //System.out.println("Sender : "+sms.getSender()+"; destinatiaire : "+sms.getDestinataire()+"; Code retour : "+chunk);
+                        //System.out.println("flag : "+flag);
                     }
-                    //System.out.println("Sender : "+sms.getSender()+"; destinatiaire : "+sms.getDestinataire()+"; Code retour : "+chunk);
-                    //System.out.println("flag : "+flag);
+                } else {
+                    return "-1";
                 }
-            } else {
-                return  "-1";
+            } catch (ConnectException e) {
+                e.printStackTrace();
+                return "-1";
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+                return "-1";
+            } catch (RuntimeException runtimeException) {
+                runtimeException.printStackTrace();
+                return "-1";
             }
-        } catch (ConnectException e) {
-            e.printStackTrace();
-            return  "-1";
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-             return  "-1";
-        } catch (RuntimeException runtimeException) {
-            runtimeException.printStackTrace();
-            return  "-1";
-        }
-         return  "-1";
-        
+            return "-1";
+
         } catch (Exception e) {
-           e.printStackTrace();
+            e.printStackTrace();
         }
-       
-        
+
         return null;
+
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "initPaymentMoMo/{phone}/{amount}", method = RequestMethod.GET)
+    public InfoPayMtn initPaymentMoMo(@PathVariable(value = "phone") String phone, @PathVariable(value = "amount") String amount) {
+
+        HttpHeaders headers = new HttpHeaders();
+        InfoPayMtn infoPayMtn = new InfoPayMtn();
+        com.payment.pay.entities.Payer payer = new com.payment.pay.entities.Payer();
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+
+            String url = "https://sandbox.momodeveloper.mtn.com/collection/v1_0/requesttopay";
+
+            headers.add("Authorization", "Bearer "+gettokenMoMo());
+            headers.add("X-Reference-Id", getReferenceId());
+            headers.add("X-Target-Environment", "sandbox");
+            headers.add("Content-Type", "application/json");
+            headers.add("Ocp-Apim-Subscription-Key", "7f38d67b3fab49c7be51995ab2671259");
+            payer.setPartyId(phone);
+            infoPayMtn.setAmount("5.0");
+            infoPayMtn.setCurrency("EUR");
+            infoPayMtn.setExternalId("1254778");
+            infoPayMtn.setPayeeNote("test");
+            infoPayMtn.setPayerMessage("testjava");
+            infoPayMtn.setPayer(payer);
+            HttpEntity<InfoPayMtn> entity = new HttpEntity<>(infoPayMtn, headers);
+            String sg = restTemplate.postForObject(url, entity, String.class);
+            System.out.println(sg);
+            System.out.println("+++++++++++++++++++++");
+            return infoPayMtn;
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        System.out.println("-----------------------");
+        return infoPayMtn;
+    }
+
+    @ResponseBody
+    public String getReferenceId() {
+        HttpHeaders headers = new HttpHeaders();
+        RestTemplate restTemplate = new RestTemplate();
+
+        String ref = "";
+        try {
+            String url = "https://www.uuidgenerator.net/api/version4";
+
+            HttpEntity<String> entity = new HttpEntity<>(ref, headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            return response.getBody();
+
+        } catch (Exception e) {
+
+            return e.getMessage();
+        }
+
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "gettokenMoMo", method = RequestMethod.GET)
+    public String gettokenMoMo() {
+        HashMap map = new HashMap();
+        HttpHeaders headers = new HttpHeaders();
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+
+            headers.add("Authorization", "Basic YzhhYzE5Y2EtYzdkMi00ODA0LWIzM2QtNGM1NjhlYTAzNjJkOmJjMThmM2UwMzU3NzRlMzBiMDZiNTAwZTllNTliM2Nh");
+            headers.add("Content-Type", "application/json");
+            headers.add("Ocp-Apim-Subscription-Key", "7f38d67b3fab49c7be51995ab2671259");
+            String url = "https://sandbox.momodeveloper.mtn.com/collection/token/";
+            HttpEntity<HashMap> entity = new HttpEntity<>(map, headers);
+            ResponseEntity<HashMap> response = restTemplate.exchange(url, HttpMethod.POST, entity, HashMap.class);
+            map = response.getBody();
+            System.out.println(map.get("access_token"));
             
+            return map.get("access_token").toString();
+        } catch (Exception e) {
+            map.put("error", e.getMessage());
+            return map.toString();
+        }
+    }
+    
+    
+    @ResponseBody
+    @RequestMapping(value = "checkTransaction", method = RequestMethod.GET)
+    public Object checkTransaction() {
+        HashMap map = new HashMap();
+        HttpHeaders headers = new HttpHeaders();
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            System.out.println(gettokenMoMo());
+            headers.add("Authorization", "Bearer "+gettokenMoMo());
+            headers.add("Content-Type", "application/json");
+            headers.add("X-Target-Environment", "sandbox");
+            headers.add("Ocp-Apim-Subscription-Key", "7f38d67b3fab49c7be51995ab2671259");
+            String url = "https://sandbox.momodeveloper.mtn.com/collection/v1_0/requesttopay/da2b3269-e298-4937-b206-a78e81f35c64";
+            HttpEntity<HashMap> entity = new HttpEntity<>(map, headers);
+            ResponseEntity<HashMap> response = restTemplate.exchange(url, HttpMethod.GET, entity, HashMap.class);
+            map = response.getBody();
+            System.out.println(map.get("status"));
+            return map;
+        } catch (Exception e) {
+            map.put("error", e.getMessage());
+            return map;
+        }
     }
 }

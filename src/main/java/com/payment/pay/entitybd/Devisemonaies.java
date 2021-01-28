@@ -22,8 +22,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Carlos TCHIOZEM
  */
 @Entity
-@Table(name = "devisemonaies")
-@XmlRootElement
+@Table(name = "devisemonaies",catalog = "perfectpay", schema = "")
+
 @NamedQueries({
     @NamedQuery(name = "Devisemonaies.findAll", query = "SELECT d FROM Devisemonaies d")})
 public class Devisemonaies implements Serializable {
