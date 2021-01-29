@@ -73,7 +73,6 @@ import com.payment.pay.gtplimited.AllServicesStub;
 import com.payment.pay.service.MultiThread;
 import com.payment.pay.service.PaypalService;
 import com.payment.pay.service.UssdService;
-import com.paypal.api.payments.Payer;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
@@ -87,28 +86,18 @@ import java.math.BigDecimal;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.concurrent.Flow.Subscription;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 /**
  *
@@ -533,7 +522,7 @@ public class MobilPayService {
 
             try {
                 infopayment = infopayRepository.findByNotifToken(resOrange.getNotif_token());
-                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + infopayment.getCodeClient() + "&CodeAPI=" + infopayment.getCodeAPI()
+                String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + infopayment.getCodeClient() + "&CodeAPI=" + infopayment.getCodeAPI()
                         + "&Projet=" + infopayment.getProjet()
                         + "&Montant=" + infopayment.getMontant() + "&MoyenTransaction=" + infopayment.getMoyenTransaction() + "&Telephone=" + infopayment.getTel() + "";
                 restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
@@ -588,7 +577,7 @@ public class MobilPayService {
 
             try {
                 infopayment = infopayRepository.findByNotifToken(resOrange.getNotif_token());
-                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge&CodeClient=" + infopayment.getCodeClient() + "&CodeAPI=" + infopayment.getCodeAPI()
+                String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge&CodeClient=" + infopayment.getCodeClient() + "&CodeAPI=" + infopayment.getCodeAPI()
                         + "&Projet=" + infopayment.getProjet() + "&Montant=" + infopayment.getMontant()
                         + "&MoyenTransaction=" + infopayment.getMoyenTransaction() + "&Telephone=" + infopayment.getTel() + "&Compte_client=" + infopayment.getCompteClient() + "";
                 restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
@@ -680,7 +669,7 @@ public class MobilPayService {
             System.out.println(etat);
             if (etat.equals("1")) {
                 try {
-                    String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + nomProjet
+                    String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + nomProjet
                             + "&Montant=" + amount + "&MoyenTransaction=" + operateur + "&Telephone=" + phonenumber + "";
 
                     restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
@@ -829,7 +818,7 @@ public class MobilPayService {
             System.out.println(etat);
             if (etat.equals("1")) {
                 try {
-                    String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + nomProjet + ""
+                    String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + nomProjet + ""
                             + "&Montant=" + amount + "&MoyenTransaction=" + operateur + "&Telephone=" + phonenumber + "&Compte_client=" + compteClient + "";
 
                     ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
@@ -1001,7 +990,7 @@ public class MobilPayService {
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(codeApi);
-                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet
+                String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet
                         + "&Montant=" + amount + "&MoyenTransaction=Paypal&Telephone=" + telephone + "";
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
                 System.out.println(response);
@@ -1085,7 +1074,7 @@ public class MobilPayService {
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(codeApi);
-                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet + ""
+                String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet + ""
                         + "&Montant=" + amount + "&MoyenTransaction=" + moyenTransaction + "&Compte_client=" + compteClient + "";
 
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
@@ -1206,7 +1195,7 @@ public class MobilPayService {
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
 
-                String urls = "http://www.api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + CodeClient
+                String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + CodeClient
                         + "&CodeAPI=" + CodeAPI + "&Projet=" + Projet + ""
                         + "&Montant=" + Montant * 543.03 + "&MoyenTransaction=" + MoyenTransaction + CompteClient + "";
 
@@ -1443,13 +1432,13 @@ public class MobilPayService {
                 currencies = "USD,EUR,XOF,CAD,GBP,AED,CNY,ZAR";
             }
 
-            String url = "http://apilayer.net/api/live?access_key=" + deviseMonaies.getKeydevise() + "&currencies=" + currencies + "&source=" + source + "&format=" + format;
-            CloseableHttpClient httpclient = HttpClients.createDefault();
+            String url = "https://apilayer.net/api/live?access_key=" + deviseMonaies.getKeydevise() + "&currencies=" + currencies + "&source=" + source + "&format=" + format;
+            CloseableHttpClient httpsclient = HttpClients.createDefault();
 
-            HttpGet httpget = new HttpGet(url);
+            HttpGet httpsget = new HttpGet(url);
             CloseableHttpResponse response;
             try {
-                response = httpclient.execute(httpget);
+                response = httpsclient.execute(httpsget);
                 System.out.println("1------------------------------------1");
                 System.out.println(response.getStatusLine());
                 System.out.println("1------------------------------------1");

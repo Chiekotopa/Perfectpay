@@ -45,7 +45,7 @@ public class UssdService extends Thread {
         headers.set(HttpHeaders.ACCEPT, "application/json");
         HttpEntity<Responses> entity = new HttpEntity<>(response, headers);
 
-        String url = "http://www.api.kakotel.com/api-perfectpay.php?action=checker_compte_client_retrait&Code_clientExpediteur=" + codeClient + "&Code_clientDestinataire=" + phoneDest + "";
+        String url = "https://api.kakotel.com/api-perfectpay.php?action=checker_compte_client_retrait&Code_clientExpediteur=" + codeClient + "&Code_clientDestinataire=" + phoneDest + "";
         response = restTemplate.getForObject(url, Responses.class, response);
 
         return response;
@@ -58,7 +58,7 @@ public class UssdService extends Thread {
         headers.set(HttpHeaders.ACCEPT, "application/json");
         HttpEntity<Responses> entity = new HttpEntity<>(response, headers);
 
-        String url = "http://www.api.kakotel.com/api-perfectpay.php?action=checker_solde_expediteur_retrait&Code_clientExpediteur=" + codeClient + "&Code_clientDestinataire=" + phoneDest + "&Montant=" + solde + "";
+        String url = "https://api.kakotel.com/api-perfectpay.php?action=checker_solde_expediteur_retrait&Code_clientExpediteur=" + codeClient + "&Code_clientDestinataire=" + phoneDest + "&Montant=" + solde + "";
         response = restTemplate.getForObject(url, Responses.class, response);
 
         return response;
@@ -71,7 +71,7 @@ public class UssdService extends Thread {
         headers.set(HttpHeaders.ACCEPT, "application/json");
         HttpEntity<Responses> entity = new HttpEntity<>(response, headers);
 
-        String url = "http://www.api.kakotel.com/api-perfectpay.php?action=validation_Initilisation_retrait_account_perfect_pay&Code_clientExpediteur=" + codeClient + "&Code_clientDestinataire=" + phoneDest + "&Montant=" + solde + "&CodeSecurite=" + securiteCode + "";
+        String url = "https://api.kakotel.com/api-perfectpay.php?action=validation_Initilisation_retrait_account_perfect_pay&Code_clientExpediteur=" + codeClient + "&Code_clientDestinataire=" + phoneDest + "&Montant=" + solde + "&CodeSecurite=" + securiteCode + "";
         response = restTemplate.getForObject(url, Responses.class, response);
 
         return response;
