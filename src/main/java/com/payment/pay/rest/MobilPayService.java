@@ -239,8 +239,10 @@ public class MobilPayService {
         String dateExpire = sdf.format(tokenom.getExpiresIn());
         operateur = operateur.toUpperCase();
         if (dateExpire.equals(curentdate)) {
+           
             System.out.println(curentdate + " " + dateExpire);
             System.out.println("change date");
+            getToken();
         } else {
             System.out.println(curentdate + " " + dateExpire);
         }
@@ -277,7 +279,7 @@ public class MobilPayService {
         pojo.setMerchant_key("66b0ed55");
         pojo.setReference(partenaire.getOmReference());
         pojo.setOrder_id("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
-        pojo.setNotif_url("http://192.168.40.113:8081/Perfectpay/rest/api/paiement/orangeResponse");
+        pojo.setNotif_url("http://154.72.148.105:8081/Perfectpay/rest/api/paiement/orangeResponse");
         partenaire.setOrderId(partenaire.getOrderId() + 1);
         partenaireRepository.save(partenaire);
 
@@ -336,6 +338,7 @@ public class MobilPayService {
         if (dateExpire.equals(curentdate)) {
             System.out.println(curentdate + " " + dateExpire);
             System.out.println("change date");
+            getToken();
         } else {
             System.out.println(curentdate + " " + dateExpire);
         }
@@ -372,7 +375,7 @@ public class MobilPayService {
         pojo.setMerchant_key("66b0ed55");
         pojo.setReference(partenaire.getOmReference());
         pojo.setOrder_id("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
-        pojo.setNotif_url("http://192.168.40.113:8081/Perfectpay/rest/api/paiement/orangeResponseGedomed");
+        pojo.setNotif_url("http://154.72.148.105:8081/Perfectpay/rest/api/paiement/orangeResponseGedomed");
         partenaire.setOrderId(partenaire.getOrderId() + 1);
         partenaireRepository.save(partenaire);
 
@@ -433,6 +436,7 @@ public class MobilPayService {
         if (dateExpire.equals(curentdate)) {
             System.out.println(curentdate + " " + dateExpire);
             System.out.println("change date");
+            getToken();
         } else {
             System.out.println(curentdate + " " + dateExpire);
         }
@@ -469,7 +473,7 @@ public class MobilPayService {
         pojo.setMerchant_key("66b0ed55");
         pojo.setReference(partenaire.getOmReference());
         pojo.setOrder_id("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
-        pojo.setNotif_url("http://192.168.40.113:8081/Perfectpay/rest/api/paiement/orangeResponseRecharge");
+        pojo.setNotif_url("http://154.72.148.105:8081/Perfectpay/rest/api/paiement/orangeResponseRecharge");
         partenaire.setOrderId(partenaire.getOrderId() + 1);
         partenaireRepository.save(partenaire);
 
@@ -571,7 +575,7 @@ public class MobilPayService {
         String body = "";
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
         RestTemplate restTemplate = new RestTemplate();
-
+    
         if (resOrange.getStatus().equals("SUCCESS")) {
             Infopayment infopayment = new Infopayment();
 
@@ -939,7 +943,7 @@ public class MobilPayService {
             return lienpay;
         }
         String cancelUrl = infoPayPapal.getUrl_cancel();
-        String successUrl = "http://192.168.40.113:8081/Perfectpay/rest/api/paiement/ConfirmPayment?url_return=" + infoPayPapal.getUrl_return()
+        String successUrl = "http://154.72.148.105:8081/Perfectpay/rest/api/paiement/ConfirmPayment?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
                 + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount()
                 + "&telephone=" + infoPayPapal.getPhone() + "";
@@ -1025,7 +1029,7 @@ public class MobilPayService {
             return lienpay;
         }
         String cancelUrl = infoPayPapal.getUrl_cancel();
-        String successUrl = "http://192.168.40.113:8081/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
+        String successUrl = "http://154.72.148.105:8081/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
                 + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount() + "";
         System.out.println(infoPayPapal.getAmount());
@@ -1110,7 +1114,7 @@ public class MobilPayService {
             return lienpay;
         }
         String cancelUrl = infoPayPapal.getUrl_cancel();
-        String successUrl = "http://192.168.40.113:8081/Perfectpay/rest/api/paiement/ConfirmPayGedomed?url_return=" + infoPayPapal.getUrl_return()
+        String successUrl = "http://154.72.148.105:8081/Perfectpay/rest/api/paiement/ConfirmPayGedomed?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
                 + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount()
                 + "&index=" + index + "";
