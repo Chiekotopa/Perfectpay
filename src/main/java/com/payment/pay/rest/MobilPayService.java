@@ -1179,9 +1179,9 @@ public class MobilPayService {
 
     //**********************************Pour autres Developpeurs voulant intégré paypal
     @ResponseBody
-    @RequestMapping(method = RequestMethod.GET, value = "checkPaypal/{paymentId}/{PayerID}/{CodeClient}/{CodeAPI}/{Projet}/{Montant}/{MoyenTransaction}/{CompteClient}")
+    @RequestMapping(method = RequestMethod.GET, value = "checkPaypal/{CodeClient}/{CodeAPI}/{Projet}/{Montant}/{MoyenTransaction}/{CompteClient}")
     public String checkPaypa(
-            @PathVariable("paymentId") String paymentId, @PathVariable("PayerID") String payerId, @PathVariable("CodeClient") String CodeClient, @PathVariable("CodeAPI") String CodeAPI,
+            @RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId, @PathVariable("CodeClient") String CodeClient, @PathVariable("CodeAPI") String CodeAPI,
             @PathVariable("Projet") String Projet, @PathVariable("Montant") Double Montant,
             @PathVariable("MoyenTransaction") String MoyenTransaction, @PathVariable("CompteClient") String CompteClient) {
         InfoPayOrange payOrange = new InfoPayOrange();
