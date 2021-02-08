@@ -1270,49 +1270,25 @@ public class MobilPayService {
     @RequestMapping(method = RequestMethod.POST, value = "initDebitMarchandPefectPay")
     public Responses initDebitMarchandPefectPay(@RequestBody Sessiontrans sessiontrans) {
         Responses responses = new Responses();
-        if (ussdservice.checkerCompteClientetrait(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire()) != null) {
-            responses = ussdservice.checkerCompteClientetrait(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire());
-            if (responses.getSucces() == -2) {
-
-                return responses;
-            }
-            if (responses.getSucces() == -1) {
-
-                return responses;
-            }
-        }
-
-        if (ussdservice.checkerSoldeExpediteurRetrait(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire(), sessiontrans.getMontant()) != null) {
-            responses = ussdservice.checkerSoldeExpediteurRetrait(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire(), sessiontrans.getMontant());
-            if (responses.getSucces() == -2) {
-
-                return responses;
-            }
-
-        }
-        if (ussdservice.validationInitilisationRretraitAccountPerfectPay(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire(), sessiontrans.getMontant(), sessiontrans.getCodesecret()) != null) {
-            responses = ussdservice.validationInitilisationRretraitAccountPerfectPay(sessiontrans.getPhoneagent(), sessiontrans.getPhonedestinataire(), sessiontrans.getMontant(), sessiontrans.getCodesecret());
-            if (responses.getSucces() == -2) {
-                responses.setMsg("Votre code secret est incorrect");
-                return responses;
-            }
-
-            if (responses.getSucces() == 1) {
+            
                 sessiontrans.setPhonedestinataire("237" + sessiontrans.getPhonedestinataire());
                 sessiontrans.setStatus("1");
                 sessiontrans.setTread("1");
                 sessiontrans.setDate(new Date(System.currentTimeMillis()));
+                sessiontrans.setType("1");
                 sessiontransRepository.save(sessiontrans);
                 MultiThread multiThread = new MultiThread(sessiontransRepository);
                 multiThread.setphone(sessiontrans.getPhonedestinataire());
                 multiThread.setphoneExp(sessiontrans.getPhoneagent());
                 multiThread.start();
+                responses.setMsg("Operation en cour");
+                responses.setSucces(1);
                 return responses;
-            }
+            
 
-        }
+       
 
-        return responses;
+        
     }
 
     //**********************************************************Api integrations paiement perfectPay
