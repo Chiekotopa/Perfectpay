@@ -1270,7 +1270,7 @@ public class MobilPayService {
     @RequestMapping(method = RequestMethod.POST, value = "initDebitMarchandPefectPay")
     public Responses initDebitMarchandPefectPay(@RequestBody Sessiontrans sessiontrans) {
         Responses responses = new Responses();
-            
+                sessiontrans.setPhoneagent("237" +sessiontrans.getPhoneagent());
                 sessiontrans.setPhonedestinataire("237" + sessiontrans.getPhonedestinataire());
                 sessiontrans.setStatus("1");
                 sessiontrans.setTread("1");
@@ -1281,7 +1281,7 @@ public class MobilPayService {
                 multiThread.setphone(sessiontrans.getPhonedestinataire());
                 multiThread.setphoneExp(sessiontrans.getPhoneagent());
                 multiThread.start();
-                responses.setMsg("Operation en cour");
+                responses.setMsg("paiement initialisé ");
                 responses.setSucces(1);
                 return responses;
             
