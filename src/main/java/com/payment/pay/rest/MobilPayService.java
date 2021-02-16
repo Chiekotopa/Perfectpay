@@ -995,7 +995,7 @@ public class MobilPayService {
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(codeApi);
                 String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet
-                        + "&Montant=" + amount + "&MoyenTransaction=Paypal&Telephone=" + telephone + "";
+                        + "&Montant=" + amount*540.18 + "&MoyenTransaction=Paypal&Telephone=" + telephone + "";
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
                 System.out.println(response);
                 return "redirect:" + url_return;
@@ -1079,7 +1079,7 @@ public class MobilPayService {
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(codeApi);
                 String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet + ""
-                        + "&Montant=" + amount + "&MoyenTransaction=" + moyenTransaction + "&Compte_client=" + compteClient + "";
+                        + "&Montant=" + amount*540.18 + "&MoyenTransaction=" + moyenTransaction + "&Compte_client=" + compteClient + "";
 
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
                 System.out.println(response);
@@ -1164,7 +1164,7 @@ public class MobilPayService {
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(codeApi);
-                String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement=" + index + "&MoyenPaiement=Paypal&montant=" + amount + "";
+                String urls = "https://gedomed.com/api.php?action=PayerAbonnement&Indexe_abonnement=" + index + "&MoyenPaiement=Paypal&montant=" + amount*540.18 + "";
 
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
                 System.out.println(response);
@@ -1201,7 +1201,7 @@ public class MobilPayService {
 
                 String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + CodeClient
                         + "&CodeAPI=" + CodeAPI + "&Projet=" + Projet + ""
-                        + "&Montant=" + Montant * 543.03 + "&MoyenTransaction=" + MoyenTransaction + CompteClient + "";
+                        + "&Montant=" + Montant * 540.18 + "&MoyenTransaction=" + MoyenTransaction + CompteClient + "";
 
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
                 System.out.println(response);
@@ -1269,8 +1269,9 @@ public class MobilPayService {
     @ResponseBody
     @RequestMapping(method = RequestMethod.POST, value = "initDebitMarchandPefectPay")
     public Responses initDebitMarchandPefectPay(@RequestBody Sessiontrans sessiontrans) {
-        Responses responses = new Responses();
-                sessiontrans.setPhoneagent("237" +sessiontrans.getPhoneagent());
+         Responses responses = new Responses();
+        try {
+            sessiontrans.setPhoneagent("237" +sessiontrans.getPhoneagent());
                 sessiontrans.setPhonedestinataire("237" + sessiontrans.getPhonedestinataire());
                 sessiontrans.setStatus("1");
                 sessiontrans.setTread("1");
@@ -1284,10 +1285,14 @@ public class MobilPayService {
                 responses.setMsg("paiement initialisé ");
                 responses.setSucces(1);
                 return responses;
+        } catch (Exception e) {
+            responses.setMsg("Error");
+            responses.setSucces(0);
+            return responses;
+        }
+      
+                
             
-
-       
-
         
     }
 
