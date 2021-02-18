@@ -8,8 +8,6 @@ package com.payment.pay.service;
 
 import com.payment.pay.dao.SessiontransRepository;
 import com.payment.pay.entitybd.Sessiontrans;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

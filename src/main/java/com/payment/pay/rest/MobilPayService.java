@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.payment.pay.config.PaypalPaymentIntent;
 import com.payment.pay.config.PaypalPaymentMethod;
 import com.payment.pay.dao.ApiRepository;
+import com.payment.pay.dao.ApiperfectRepository;
 import com.payment.pay.dao.ClientRepository;
 import com.payment.pay.dao.DeviseMonaieRepository;
 import com.payment.pay.dao.InfopayRepository;
@@ -31,6 +32,7 @@ import com.payment.pay.entities.ResOrange;
 import com.payment.pay.entities.Responses;
 import com.payment.pay.entities.Token;
 import com.payment.pay.entitybd.Api;
+import com.payment.pay.entitybd.Apiperfectpay;
 import com.payment.pay.entitybd.Clients;
 import com.payment.pay.entitybd.Devisemonaies;
 import com.payment.pay.entitybd.Infopayment;
@@ -71,6 +73,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.payment.pay.gtplimited.AllServicesStub;
 import com.payment.pay.service.MultiThread;
+import com.payment.pay.service.MutiThreadMarchand;
 import com.payment.pay.service.PaypalService;
 import com.payment.pay.service.UssdService;
 import com.paypal.api.payments.Payment;
@@ -92,6 +95,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.UUID;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.stereotype.Controller;
@@ -118,6 +122,9 @@ public class MobilPayService {
 
     @Autowired
     PartenaireRepository partenaireRepository;
+
+    @Autowired
+    ApiperfectRepository apiperfectRepository;
 
     @Autowired
     ApiRepository apiRepository;
@@ -1294,63 +1301,152 @@ public class MobilPayService {
 
     }
 
-    //**********************************************************Api integrations paiement perfectPay
+    //Api integrations paiement perfectPay *************************************************************
     @ResponseBody
     @RequestMapping(method = RequestMethod.POST, value = "initPaymentPerfectpay")
-    public Responses initPaymentPerfectpay(){
-        Responses responses=new Responses();
+    public HashMap initPaymentPerfectpay(@RequestBody Apiperfectpay apiperfectpay) {
+        HashMap map = new HashMap();
+        Sessiontrans sessiontrans = new Sessiontrans();
         try {
-            
-            
-            return responses;
+            String resp = verifClient(apiperfectpay.getCodeclient(), apiperfectpay.getCodeapi(), apiperfectpay.getProjet());
+            if (resp.equals("-2")) {
+                map.put("msg", "Code Client n'existe pas");
+                map.put("response", -2);
+                return map;
+            }
+
+            if (resp.equals("-3")) {
+                map.put("msg", "Vous n'avez pas souscrit au service API");
+                map.put("response", -3);
+                return map;
+            }
+
+            if (resp.equals("-3")) {
+                map.put("msg", "CodeClient, CodeApi,Projet ne correspondent pas");
+                map.put("response", -4);
+                return map;
+            }
+
+            Responses responses = ussdservice.checkerCompteClientetrait(apiperfectpay.getCodeclient(), apiperfectpay.getTeldestinataire());
+            if (responses.getSucces() == -2) {
+                map.put("msg", responses.getMsg());
+                map.put("response", -5);
+                return map;
+            }
+            if (responses.getSucces() == -1) {
+                map.put("msg", responses.getMsg());
+                map.put("response", -6);
+                return map;
+            }
+
+            responses = ussdservice.checkerSoldeExpediteurRetrait(apiperfectpay.getCodeclient(), apiperfectpay.getTeldestinataire(), apiperfectpay.getMontant());
+            if (responses.getSucces() == -2) {
+                map.put("msg", responses.getMsg());
+                map.put("response", -7);
+                return map;
+            }
+            sessiontrans.setPhoneagent("237" + apiperfectpay.getCodeclient());
+            sessiontrans.setPhonedestinataire("237" + apiperfectpay.getTeldestinataire());
+            sessiontrans.setStatus("1");
+            sessiontrans.setTread("1");
+            sessiontrans.setDate(new Date(System.currentTimeMillis()));
+            sessiontrans.setType("1");
+            sessiontransRepository.save(sessiontrans);
+            String key = CreateUniKey();
+            apiperfectpay.setIdtransaction(key);
+            apiperfectpay.setStatus("ATTENTE");
+            apiperfectRepository.save(apiperfectpay);
+            MutiThreadMarchand multiThread = new MutiThreadMarchand(sessiontransRepository, apiperfectRepository);
+            multiThread.setphone(sessiontrans.getPhonedestinataire());
+            multiThread.setphoneExp(sessiontrans.getPhoneagent());
+            multiThread.setKey(key);
+            multiThread.start();
+
+            map.put("Idtransaction", key);
+            map.put("Status", "ATTENTE");
+
+            return map;
+
         } catch (Exception e) {
-          responses.setMsg(e.getMessage());
-          responses.setSucces(-1);
-          return responses;
+            map.put("msg", e.getMessage());
+            map.put("response", 0);
+            return map;
         }
-        
+
     }
 
+    public static String CreateUniKey() {
+        return UUID.randomUUID().toString();
+    }
+
+    @ResponseBody
+    @RequestMapping(method = RequestMethod.GET, value = "checkPaymentPerfectpay/{idtransaction}")
+    public HashMap checkPaymentPerfectpay(@PathVariable(value = "idtransaction") String idtransaction) {
+        HashMap map = new HashMap();
+        Apiperfectpay apiperfectpay = new Apiperfectpay();
+        try {
+            if (sessiontransRepository.findeByIdtransaction(idtransaction) != null) {
+                apiperfectpay = sessiontransRepository.findeByIdtransaction(idtransaction);
+                map.put("Status", apiperfectpay.getStatus());
+                map.put("Idtransaction", apiperfectpay.getIdtransaction());
+                map.put("montant", apiperfectpay.getMontant());
+                map.put("PhoneClient", apiperfectpay.getTeldestinataire());
+                return map;
+            } else {
+                map.put("msg", "idtransaction n'existe pas");
+                map.put("response", -1);
+                return map;
+            }
+
+        } catch (Exception e) {
+            map.put("msg", e.getMessage());
+            map.put("response", 0);
+            return map;
+        }
+
+    
+}
+
 //    @RequestMapping(value = "/stripePayment/{paymentId}/{amount}", method = RequestMethod.GET)
-    //    public String stripePayment(@PathVariable("paymentId") String paymentId, @PathVariable("amount") String amount) throws StripeException {
-    //
-    //        Stripe.apiKey = "sk_live_jMmaSoLH8mWwW34XPkZS5bXh";
-    //
-    //        Map<String, Object> chargeParams = new HashMap<String, Object>();
-    //        Float val = Float.valueOf(amount);
-    //        val = val * 100;
-    //        chargeParams.put("amount", val.longValue());
-    //        chargeParams.put("currency", "usd");
-    //        chargeParams.put("source", paymentId);
-    //        Charge charge;
-    //
-    //        try {
-    //            charge = Charge.create(chargeParams);
-    //            System.err.println(charge.getStatus());
-    //            if (charge.getStatus().equals("succeeded")) {
-    //                System.err.println("paymentId==============================================================" + paymentId);
-    //                System.err.println("amount==============================================================" + amount);
-    //
-    //                return "1";
-    //            } else {
-    //                return "-1";
-    //            }
-    //
-    //        } catch (Exception e) {
-    //            e.printStackTrace();
-    //        }
-    //        return "-2";
-    //    }
-    //       
-    //  
-    //paiement UBA --------------------------------------------------------------------------------------------
-    public org.apache.axis2.databinding.ADBBean getTestObject(java.lang.Class type) throws java.lang.Exception {
+//    public String stripePayment(@PathVariable("paymentId") String paymentId, @PathVariable("amount") String amount) throws StripeException {
+//
+//        Stripe.apiKey = "sk_live_jMmaSoLH8mWwW34XPkZS5bXh";
+//
+//        Map<String, Object> chargeParams = new HashMap<String, Object>();
+//        Float val = Float.valueOf(amount);
+//        val = val * 100;
+//        chargeParams.put("amount", val.longValue());
+//        chargeParams.put("currency", "usd");
+//        chargeParams.put("source", paymentId);
+//        Charge charge;
+//
+//        try {
+//            charge = Charge.create(chargeParams);
+//            System.err.println(charge.getStatus());
+//            if (charge.getStatus().equals("succeeded")) {
+//                System.err.println("paymentId==============================================================" + paymentId);
+//                System.err.println("amount==============================================================" + amount);
+//
+//                return "1";
+//            } else {
+//                return "-1";
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return "-2";
+//    }
+//       
+//  
+//paiement UBA --------------------------------------------------------------------------------------------
+public org.apache.axis2.databinding.ADBBean getTestObject(java.lang.Class type) throws java.lang.Exception {
         return (org.apache.axis2.databinding.ADBBean) type.newInstance();
     }
 
     @ResponseBody
-    @RequestMapping(value = "fundTransfertCardToCard/{userId}/{paymentType}/{amount}/{toCustomerId}/{currencyCode}/{last4Digits}", method = RequestMethod.GET)
-    public Integer fundTransfertCardToCard(@PathVariable("userId") Integer userId, @PathVariable("paymentType") String paymentType,
+        @RequestMapping(value = "fundTransfertCardToCard/{userId}/{paymentType}/{amount}/{toCustomerId}/{currencyCode}/{last4Digits}", method = RequestMethod.GET)
+        public Integer fundTransfertCardToCard(@PathVariable("userId") Integer userId, @PathVariable("paymentType") String paymentType,
             @PathVariable("amount") BigDecimal amount, @PathVariable("toCustomerId") Integer toCustomerId, @PathVariable("currencyCode") String currencyCode, @PathVariable("last4Digits") String last4Digits) {
         try {
 //            partenaire = partenaireService.find(PartenaireInfo.code);
@@ -1360,14 +1456,23 @@ public class MobilPayService {
 //            }
 
             this.stub = new AllServicesStub();
-            this.requestHeader = (RequestHeader) getTestObject(RequestHeader.class);
+            this.requestHeader = (RequestHeader) getTestObject(RequestHeader
+
+.class  
+
+
+);
 
             BaseRequestHeader brh = new BaseRequestHeader();
             brh.setSecurityToken("UBCMKAKOTELq2ervuih1397fh1095437fh139pgv");
             brh.setRequestID("201");
             this.requestHeader.setRequestHeader(brh);
-            BaseRequest baseRequest = (BaseRequest) getTestObject(BaseRequest.class
-            );
+            BaseRequest baseRequest = (BaseRequest) getTestObject(BaseRequest
+
+.class  
+
+
+);
             FundTransferCardToCardRequest fundTransferCardToCardRequest = new FundTransferCardToCardRequest();
             fundTransferCardToCardRequest.setFromCustomerID(Integer.valueOf(toCustomerId));
             fundTransferCardToCardRequest.setToCustomerID(toCustomerId);
@@ -1404,8 +1509,8 @@ public class MobilPayService {
 
 //// 
     @ResponseBody
-    @RequestMapping(value = "/testGet", method = RequestMethod.GET)
-    public HashMap TestGet() {
+        @RequestMapping(value = "/testGet", method = RequestMethod.GET)
+        public HashMap TestGet() {
         HashMap hashMap = new HashMap();
         Sessiontrans sessiontrans = new Sessiontrans();
 
@@ -1424,8 +1529,8 @@ public class MobilPayService {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/testPost", method = RequestMethod.POST)
-    public HashMap getTestPost() {
+        @RequestMapping(value = "/testPost", method = RequestMethod.POST)
+        public HashMap getTestPost() {
         HashMap hashMap = new HashMap();
         try {
             hashMap.put("message", "Post Request");
@@ -1440,8 +1545,8 @@ public class MobilPayService {
     }
 
     @ResponseBody
-    @RequestMapping(value = "getOnlineDevises/{devise}", method = RequestMethod.GET)
-    public String getDevise(@PathVariable("devise") String devise) {
+        @RequestMapping(value = "getOnlineDevises/{devise}", method = RequestMethod.GET)
+        public String getDevise(@PathVariable("devise") String devise) {
 
         String source = null;
         String format = "1";
@@ -1562,8 +1667,8 @@ public class MobilPayService {
     }
 
     @ResponseBody
-    @RequestMapping(value = "initPaymentMoMo/{phone}/{amount}", method = RequestMethod.GET)
-    public InfoPayMtn initPaymentMoMo(@PathVariable(value = "phone") String phone, @PathVariable(value = "amount") String amount) {
+        @RequestMapping(value = "initPaymentMoMo/{phone}/{amount}", method = RequestMethod.GET)
+        public InfoPayMtn initPaymentMoMo(@PathVariable(value = "phone") String phone, @PathVariable(value = "amount") String amount) {
 
         HttpHeaders headers = new HttpHeaders();
         InfoPayMtn infoPayMtn = new InfoPayMtn();
@@ -1587,7 +1692,12 @@ public class MobilPayService {
             infoPayMtn.setPayerMessage("testjava");
             infoPayMtn.setPayer(payer);
             HttpEntity<InfoPayMtn> entity = new HttpEntity<>(infoPayMtn, headers);
-            String sg = restTemplate.postForObject(url, entity, String.class);
+            String sg = restTemplate.postForObject(url, entity, String
+
+.class  
+
+
+);
             System.out.println(sg);
             System.out.println("+++++++++++++++++++++");
             return infoPayMtn;
@@ -1601,7 +1711,7 @@ public class MobilPayService {
     }
 
     @ResponseBody
-    public String getReferenceId() {
+        public String getReferenceId() {
         HttpHeaders headers = new HttpHeaders();
         RestTemplate restTemplate = new RestTemplate();
 
@@ -1610,7 +1720,12 @@ public class MobilPayService {
             String url = "https://www.uuidgenerator.net/api/version4";
 
             HttpEntity<String> entity = new HttpEntity<>(ref, headers);
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String
+
+.class  
+
+
+);
             return response.getBody();
 
         } catch (Exception e) {
@@ -1621,8 +1736,8 @@ public class MobilPayService {
     }
 
     @ResponseBody
-    @RequestMapping(value = "gettokenMoMo", method = RequestMethod.GET)
-    public String gettokenMoMo() {
+        @RequestMapping(value = "gettokenMoMo", method = RequestMethod.GET)
+        public String gettokenMoMo() {
         HashMap map = new HashMap();
         HttpHeaders headers = new HttpHeaders();
         RestTemplate restTemplate = new RestTemplate();
@@ -1633,7 +1748,12 @@ public class MobilPayService {
             headers.add("Ocp-Apim-Subscription-Key", "7f38d67b3fab49c7be51995ab2671259");
             String url = "https://sandbox.momodeveloper.mtn.com/collection/token/";
             HttpEntity<HashMap> entity = new HttpEntity<>(map, headers);
-            ResponseEntity<HashMap> response = restTemplate.exchange(url, HttpMethod.POST, entity, HashMap.class);
+            ResponseEntity<HashMap> response = restTemplate.exchange(url, HttpMethod.POST, entity, HashMap
+
+.class  
+
+
+);
             map = response.getBody();
             System.out.println(map.get("access_token"));
 
@@ -1645,8 +1765,8 @@ public class MobilPayService {
     }
 
     @ResponseBody
-    @RequestMapping(value = "checkTransaction", method = RequestMethod.GET)
-    public Object checkTransaction() {
+        @RequestMapping(value = "checkTransaction", method = RequestMethod.GET)
+        public Object checkTransaction() {
         HashMap map = new HashMap();
         HttpHeaders headers = new HttpHeaders();
         RestTemplate restTemplate = new RestTemplate();
@@ -1658,7 +1778,12 @@ public class MobilPayService {
             headers.add("Ocp-Apim-Subscription-Key", "7f38d67b3fab49c7be51995ab2671259");
             String url = "https://sandbox.momodeveloper.mtn.com/collection/v1_0/requesttopay/da2b3269-e298-4937-b206-a78e81f35c64";
             HttpEntity<HashMap> entity = new HttpEntity<>(map, headers);
-            ResponseEntity<HashMap> response = restTemplate.exchange(url, HttpMethod.GET, entity, HashMap.class);
+            ResponseEntity<HashMap> response = restTemplate.exchange(url, HttpMethod.GET, entity, HashMap
+
+.class  
+
+
+);
             map = response.getBody();
             System.out.println(map.get("status"));
             return map;

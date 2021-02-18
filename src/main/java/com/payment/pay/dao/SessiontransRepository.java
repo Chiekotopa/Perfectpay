@@ -6,6 +6,7 @@
 package com.payment.pay.dao;
 
 
+import com.payment.pay.entitybd.Apiperfectpay;
 import com.payment.pay.entitybd.Sessiontrans;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,6 +27,9 @@ public interface SessiontransRepository extends JpaRepository<Sessiontrans, Inte
      
      @Query("SELECT ss FROM Sessiontrans ss WHERE ss.phonedestinataire=?1 AND ss.phoneagent=?2 AND ss.tread='1'")
     public Sessiontrans findListSessiontransBySecretcode(String teldest,String telExp);
+    
+    @Query("SELECT a FROM Apiperfectpay a WHERE a.idtransaction=?1")
+    public Apiperfectpay findeByIdtransaction(String idtransaction);
         
     
 }
