@@ -6,6 +6,7 @@
 package com.payment.pay.entitybd;
 
 import java.io.Serializable;
+import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,15 +16,15 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 /**
  *
- * @author Carlos TCHIOZEM
+ * @author chiek
  */
 @Entity
-@Table(name = "infopayment",catalog = "perfectpay", schema = "")
-@XmlRootElement
+@Table(name = "infopayment", catalog = "perfectpay", schema = "")
 @NamedQueries({
     @NamedQuery(name = "Infopayment.findAll", query = "SELECT i FROM Infopayment i")})
 public class Infopayment implements Serializable {
@@ -52,6 +53,16 @@ public class Infopayment implements Serializable {
     private String notifToken;
     @Column(name = "indexpay")
     private String indexpay;
+    @Column(name = "txnid")
+    private String txnid;
+    @Column(name = "date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date;
+    @Column(name = "description")
+    private String description;
+    
+    @Column(name = "pay_token")
+    private String payToken;
 
     public Infopayment() {
     }
@@ -140,6 +151,40 @@ public class Infopayment implements Serializable {
         this.indexpay = indexpay;
     }
 
+    public String getTxnid() {
+        return txnid;
+    }
+
+    public void setTxnid(String txnid) {
+        this.txnid = txnid;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getPayToken() {
+        return payToken;
+    }
+
+    public void setPayToken(String payToken) {
+        this.payToken = payToken;
+    }
+
+    
+    
     @Override
     public int hashCode() {
         int hash = 0;
