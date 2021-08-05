@@ -1658,6 +1658,7 @@ public class MobilPayService {
 
     }
 
+    ///API MOMO******************************************************************
     @ResponseBody
     @RequestMapping(value = "initPaymentMoMo/{phone}/{amount}", method = RequestMethod.GET)
     public InfoPayMtn initPaymentMoMo(@PathVariable(value = "phone") String phone, @PathVariable(value = "amount") String amount) {
@@ -1772,14 +1773,26 @@ public class MobilPayService {
 
     @ResponseBody
     @RequestMapping(value = "test", method = RequestMethod.GET)
-    public HashMap test() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, JSONException {
-        OmService omService = new OmService();
-        HashMap map = new HashMap();
-        map = omService.initPaymentOm();
-        JSONObject obj = new JSONObject(map.toString());
-        System.out.println(obj.getJSONObject("data").getString("payToken"));
+    public String test() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, JSONException {
+        OmService omService = new OmService(partenaireRepository, transtatusRepository, infopayRepository);
+        
+        Partenaire partenaire=new Partenaire();
+        System.out.println("----------------------------------------1");
+        if (partenaireRepository.findByOmReference("ORCA") == null) {
+            
+            partenaire.setOrderId(1);
+            System.out.println("----------------------------------------2");
+            partenaireRepository.save(partenaire);
+        }
+        omService.setAmount("1");
+        omService.setCodeApi("327027256");
+        omService.setCodeClient("5022756503");
+        omService.setIndex("GEDO73782262735212279SYSTEMOq38e");
+        omService.setNomProjet("ORCA");
+        omService.setOperateur("ORANGE");
+        omService.setTelephone("691788864");
 
-        return omService.initPaymentOm();
+        return omService.PaymentOm();
 
     }
 

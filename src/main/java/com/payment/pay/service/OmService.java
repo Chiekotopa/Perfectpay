@@ -50,6 +50,81 @@ public class OmService {
     
     @Autowired
     InfopayRepository infopayRepository;
+    
+    private String Telephone,amount, codeClient, codeApi, nomProjet, operateur,index;
+
+    public OmService() {
+    }
+
+    public OmService(PartenaireRepository partenaireRepository, TranstatusRepository transtatusRepository, InfopayRepository infopayRepository) {
+        this.partenaireRepository = partenaireRepository;
+        this.transtatusRepository = transtatusRepository;
+        this.infopayRepository = infopayRepository;
+    }
+
+    
+    
+
+    
+    
+
+    public String getTelephone() {
+        return Telephone;
+    }
+
+    public void setTelephone(String Telephone) {
+        this.Telephone = Telephone;
+    }
+
+    public String getAmount() {
+        return amount;
+    }
+
+    public void setAmount(String amount) {
+        this.amount = amount;
+    }
+
+    public String getCodeClient() {
+        return codeClient;
+    }
+
+    public void setCodeClient(String codeClient) {
+        this.codeClient = codeClient;
+    }
+
+    public String getCodeApi() {
+        return codeApi;
+    }
+
+    public void setCodeApi(String codeApi) {
+        this.codeApi = codeApi;
+    }
+
+    public String getNomProjet() {
+        return nomProjet;
+    }
+
+    public void setNomProjet(String nomProjet) {
+        this.nomProjet = nomProjet;
+    }
+
+    public String getOperateur() {
+        return operateur;
+    }
+
+    public void setOperateur(String operateur) {
+        this.operateur = operateur;
+    }
+
+    public String getIndex() {
+        return index;
+    }
+
+    public void setIndex(String index) {
+        this.index = index;
+    }
+    
+    
 
     public HashMap getToken() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         ObjectMapper mapper = new ObjectMapper();
@@ -114,10 +189,10 @@ public class OmService {
     }
 
     //initier le payment pour obtenir le Paytoken
-    public HashMap PaymentOm(String Telephone, String amount, String codeClient, String codeApi, String nomProjet, String operateur, String index)
+    public String PaymentOm()
             throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, JSONException {
         ObjectMapper mapper = new ObjectMapper();
-        HashMap initPayMap = new HashMap();
+        String initPayMap ="";
         Partenaire partenaire = new Partenaire();
         Transtatus transtatus = new Transtatus();
         Infopayment infopayment = new Infopayment();
@@ -138,14 +213,15 @@ public class OmService {
 
         RestTemplate restTemplate = new RestTemplate(requestFactory);
         restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(mapper));
-
-        if (partenaireRepository.findByOmReference(nomProjet) == null) {
-            partenaire.setOmReference(nomProjet.toUpperCase());
+        System.out.println("----------------------------------------1");
+        if (partenaireRepository.findByOmReference("ORCA") == null) {
+            partenaire.setOmReference(this.nomProjet.toUpperCase());
             partenaire.setOrderId(1);
+            System.out.println("----------------------------------------2");
             partenaireRepository.save(partenaire);
         }
-        partenaire = partenaireRepository.findByOmReference(nomProjet.toUpperCase());
-
+        partenaire = partenaireRepository.findByOmReference(this.nomProjet.toUpperCase());
+System.out.println("----------------------------------------3");
         HashMap infoPayMap = new HashMap();
         infoPayMap.put("subscriberMsisdn", Telephone);
         infoPayMap.put("channelUserMsisdn", "691301143");
@@ -155,41 +231,42 @@ public class OmService {
         infoPayMap.put("pin", "2222");
         infoPayMap.put("payToken", obj.getJSONObject("data").getString("payToken"));
         infoPayMap.put("notifUrl", "http://192.168.40.221:8081/Perfectpay/rest/api/paiement/orangeResponseRecharge");
-
+System.out.println("----------------------------------------4");
         String url = "https://apiw.orange.cm/omcoreapis/1.0.2/mp/pay";
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + getToken().get("access_token"));
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
         headers.set("X-AUTH-TOKEN", "T01LQUtPVEVMMjAyMTpLQUtPVEVMU0FOREJPWDIwMjE=");
-
+ 
         HttpEntity<HashMap> entity = new HttpEntity<>(infoPayMap, headers);
-        initPayMap = restTemplate.postForObject(url, entity, HashMap.class);
-        JSONObject obj2 = new JSONObject(initPayMap.toString());
-
+        initPayMap = restTemplate.postForObject(url, entity, String.class);
+       System.out.println("----------------------------------------5");
+        JSONObject obj2 = new JSONObject(initPayMap);
+System.out.println("----------------------------------------6");
         transtatus.setOrderId("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
-        transtatus.setAmount(amount);
+        transtatus.setAmount(this.amount);
         transtatus.setPayToken(obj.getJSONObject("data").getString("payToken"));
-        transtatus.setNomprojet(nomProjet);
+        transtatus.setNomprojet(this.nomProjet);
         transtatus.setPermission("1");
-        transtatus.setCodeclient(codeClient);
-        transtatus.setCodeapi(codeApi);
-        transtatus.setOperateur(operateur);
-        transtatus.setTel(Telephone);
-        
+        transtatus.setCodeclient(this.codeClient);
+        transtatus.setCodeapi(this.codeApi);
+        transtatus.setOperateur(this.operateur);
+        transtatus.setTel(this.Telephone);
+        System.out.println("----------------------------------------7");
         transtatusRepository.save(transtatus);
 
-        infopayment.setCodeAPI(codeApi);
-        infopayment.setCodeClient(codeClient);
-        infopayment.setMontant(amount);
+        infopayment.setCodeAPI(this.codeApi);
+        infopayment.setCodeClient(this.codeClient);
+        infopayment.setMontant(this.amount);
         infopayment.setMoyenTransaction(operateur);
         infopayment.setDescription("payment test");
         infopayment.setDate(new Date(System.currentTimeMillis()));
-        infopayment.setProjet(nomProjet);
-        infopayment.setTel(Telephone);
+        infopayment.setProjet(this.nomProjet);
+        infopayment.setTel(this.Telephone);
         infopayment.setTxnid(obj2.getJSONObject("data").getString("txnid"));
         infopayment.setPayToken(obj.getJSONObject("data").getString("payToken"));
         infopayRepository.save(infopayment);
-        
+        System.out.println("----------------------------------------8");
         partenaire.setOrderId(partenaire.getOrderId() + 1);
         partenaireRepository.save(partenaire);
 
