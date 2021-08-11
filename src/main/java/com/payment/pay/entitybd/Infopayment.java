@@ -18,16 +18,15 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
  * @author chiek
  */
 @Entity
-@Table(name = "infopayment",catalog = "perfectpay", schema = "")
-@XmlRootElement
-    
+@Table(name = "infopayment", catalog = "perfectpay", schema = "")
+@NamedQueries({
+    @NamedQuery(name = "Infopayment.findAll", query = "SELECT i FROM Infopayment i")})
 public class Infopayment implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -63,6 +62,8 @@ public class Infopayment implements Serializable {
     private String description;
     @Column(name = "pay_token")
     private String payToken;
+    @Column(name = "status")
+    private String status;
 
     public Infopayment() {
     }
@@ -181,6 +182,14 @@ public class Infopayment implements Serializable {
 
     public void setPayToken(String payToken) {
         this.payToken = payToken;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override

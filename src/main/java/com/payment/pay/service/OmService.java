@@ -31,6 +31,8 @@ import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -42,89 +44,8 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class OmService {
 
-    @Autowired
-    PartenaireRepository partenaireRepository;
-    
-    @Autowired
-    TranstatusRepository transtatusRepository;
-    
-    @Autowired
-    InfopayRepository infopayRepository;
-    
-    private String Telephone,amount, codeClient, codeApi, nomProjet, operateur,index;
-
     public OmService() {
     }
-
-    public OmService(PartenaireRepository partenaireRepository, TranstatusRepository transtatusRepository, InfopayRepository infopayRepository) {
-        this.partenaireRepository = partenaireRepository;
-        this.transtatusRepository = transtatusRepository;
-        this.infopayRepository = infopayRepository;
-    }
-
-    
-    
-
-    
-    
-
-    public String getTelephone() {
-        return Telephone;
-    }
-
-    public void setTelephone(String Telephone) {
-        this.Telephone = Telephone;
-    }
-
-    public String getAmount() {
-        return amount;
-    }
-
-    public void setAmount(String amount) {
-        this.amount = amount;
-    }
-
-    public String getCodeClient() {
-        return codeClient;
-    }
-
-    public void setCodeClient(String codeClient) {
-        this.codeClient = codeClient;
-    }
-
-    public String getCodeApi() {
-        return codeApi;
-    }
-
-    public void setCodeApi(String codeApi) {
-        this.codeApi = codeApi;
-    }
-
-    public String getNomProjet() {
-        return nomProjet;
-    }
-
-    public void setNomProjet(String nomProjet) {
-        this.nomProjet = nomProjet;
-    }
-
-    public String getOperateur() {
-        return operateur;
-    }
-
-    public void setOperateur(String operateur) {
-        this.operateur = operateur;
-    }
-
-    public String getIndex() {
-        return index;
-    }
-
-    public void setIndex(String index) {
-        this.index = index;
-    }
-    
-    
 
     public HashMap getToken() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         ObjectMapper mapper = new ObjectMapper();
@@ -188,16 +109,11 @@ public class OmService {
 
     }
 
-    //initier le payment pour obtenir le Paytoken
-    public String PaymentOm()
-            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, JSONException {
+    //obtenir le statut du payment a l'aide du paytoken
+    public HashMap checkPaymentOm(String pay_token) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, JSONException {
         ObjectMapper mapper = new ObjectMapper();
-        String initPayMap ="";
-        Partenaire partenaire = new Partenaire();
-        Transtatus transtatus = new Transtatus();
-        Infopayment infopayment = new Infopayment();
-        JSONObject obj = new JSONObject(initPaymentOm().toString());
-        
+        HashMap response = new HashMap();
+        // String infoPay = "";
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
         ///pour la desactivation de verification du certificat  
@@ -210,67 +126,53 @@ public class OmService {
 
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         requestFactory.setHttpClient(httpClient);
-
-        RestTemplate restTemplate = new RestTemplate(requestFactory);
+        try {
+             RestTemplate restTemplate = new RestTemplate(requestFactory);
         restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(mapper));
-        System.out.println("----------------------------------------1");
-        if (partenaireRepository.findByOmReference("ORCA") == null) {
-            partenaire.setOmReference(this.nomProjet.toUpperCase());
-            partenaire.setOrderId(1);
-            System.out.println("----------------------------------------2");
-            partenaireRepository.save(partenaire);
-        }
-        partenaire = partenaireRepository.findByOmReference(this.nomProjet.toUpperCase());
-System.out.println("----------------------------------------3");
-        HashMap infoPayMap = new HashMap();
-        infoPayMap.put("subscriberMsisdn", Telephone);
-        infoPayMap.put("channelUserMsisdn", "691301143");
-        infoPayMap.put("amount", amount);
-        infoPayMap.put("description", "payment test");
-        infoPayMap.put("orderId", "OII_" + partenaire.getOrderId() + partenaire.getOmReference());
-        infoPayMap.put("pin", "2222");
-        infoPayMap.put("payToken", obj.getJSONObject("data").getString("payToken"));
-        infoPayMap.put("notifUrl", "http://192.168.40.221:8081/Perfectpay/rest/api/paiement/orangeResponseRecharge");
-System.out.println("----------------------------------------4");
-        String url = "https://apiw.orange.cm/omcoreapis/1.0.2/mp/pay";
+        InfoToken infoToken = new InfoToken();
+        String url = "https://apiw.orange.cm/omcoreapis/1.0.2/mp/paymentstatus/" + pay_token;
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + getToken().get("access_token"));
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
         headers.set("X-AUTH-TOKEN", "T01LQUtPVEVMMjAyMTpLQUtPVEVMU0FOREJPWDIwMjE=");
- 
-        HttpEntity<HashMap> entity = new HttpEntity<>(infoPayMap, headers);
-        initPayMap = restTemplate.postForObject(url, entity, String.class);
-       System.out.println("----------------------------------------5");
-        JSONObject obj2 = new JSONObject(initPayMap);
-System.out.println("----------------------------------------6");
-        transtatus.setOrderId("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
-        transtatus.setAmount(this.amount);
-        transtatus.setPayToken(obj.getJSONObject("data").getString("payToken"));
-        transtatus.setNomprojet(this.nomProjet);
-        transtatus.setPermission("1");
-        transtatus.setCodeclient(this.codeClient);
-        transtatus.setCodeapi(this.codeApi);
-        transtatus.setOperateur(this.operateur);
-        transtatus.setTel(this.Telephone);
-        System.out.println("----------------------------------------7");
-        transtatusRepository.save(transtatus);
+        HttpEntity<InfoToken> entity = new HttpEntity<>(infoToken, headers);
+        ResponseEntity<String> infoPay = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        JSONObject obj = new JSONObject(infoPay.getBody());
+        if (obj.getJSONObject("data").getString("status").equals("SUCCESSFULL")) {
+            response.put("message", "SUCCESSFULL");
+            response.put("status", 1);
+        }
+        if (obj.getJSONObject("data").getString("status").equals("FAILED")) {
+            response.put("message", "CANCELLED");
+            response.put("status", -2);
+        }
+        
+         if (obj.getJSONObject("data").getString("status").equals("CANCELLED")) {
+            response.put("message", "CANCELLED");
+            response.put("status", -1);
+        }
+        if (obj.getJSONObject("data").getString("status").equals("EXPIRED")) {
+            response.put("message", "EXPIRED");
+            response.put("status", 0);
+        }
+        if (obj.getJSONObject("data").getString("status").equals("PENDING")) {
+            response.put("message", "PENDING");
+            response.put("status", 2);
+        }
+        if (obj.getJSONObject("data").getString("status").equals("INITIATED")) {
+            response.put("message", "INITIATED");
+            response.put("status", 3);
+        }
+        
 
-        infopayment.setCodeAPI(this.codeApi);
-        infopayment.setCodeClient(this.codeClient);
-        infopayment.setMontant(this.amount);
-        infopayment.setMoyenTransaction(operateur);
-        infopayment.setDescription("payment test");
-        infopayment.setDate(new Date(System.currentTimeMillis()));
-        infopayment.setProjet(this.nomProjet);
-        infopayment.setTel(this.Telephone);
-        infopayment.setTxnid(obj2.getJSONObject("data").getString("txnid"));
-        infopayment.setPayToken(obj.getJSONObject("data").getString("payToken"));
-        infopayRepository.save(infopayment);
-        System.out.println("----------------------------------------8");
-        partenaire.setOrderId(partenaire.getOrderId() + 1);
-        partenaireRepository.save(partenaire);
+        return response;
+        } catch (Exception e) {
+            response.put("message", e.getMessage());
+            response.put("status", "error");
+        }
+       
 
-        return initPayMap;
+        return response;
 
     }
 
