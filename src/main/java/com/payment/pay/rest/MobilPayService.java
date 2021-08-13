@@ -1900,7 +1900,13 @@ public class MobilPayService {
                 infopayment.setStatus(etat.get("message").toString());
                 partenaireRepository.save(partenaire);
                 return etat;
+            } else if (etat.get("status").equals(-2)) {
+                infopayment.setStatus(etat.get("message").toString());
+                partenaireRepository.save(partenaire);
+                return etat;
             }
+            
+             
         }
         etat.put("message", "EXPIRED");
         etat.put("status", 0);
@@ -2044,6 +2050,11 @@ public class MobilPayService {
                 partenaireRepository.save(partenaire);
                 return etat;
             } else if (etat.get("status").equals(0)) {
+                infopayment.setStatus(etat.get("message").toString());
+                partenaireRepository.save(partenaire);
+                return etat;
+            }
+            else if (etat.get("status").equals(-2)) {
                 infopayment.setStatus(etat.get("message").toString());
                 partenaireRepository.save(partenaire);
                 return etat;

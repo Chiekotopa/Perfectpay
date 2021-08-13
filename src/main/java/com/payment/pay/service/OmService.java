@@ -144,7 +144,7 @@ public class OmService {
                 response.put("status", 1);
             }
             if (obj.getJSONObject("data").getString("status").equals("FAILED")) {
-                response.put("message", "CANCELLED");
+                response.put("message", "FAILED");
                 response.put("status", -2);
             }
 
