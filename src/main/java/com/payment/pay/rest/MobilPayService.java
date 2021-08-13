@@ -1775,9 +1775,11 @@ public class MobilPayService {
             return map;
         }
     }
-    //Orange Money API Payment--------------------------------------------------------------------------------------------------------------------------------
-
-    //initier le payment pour Orange Money nouvelle api fonctionnant avec ussd
+    //Orange Money API Orange Money --------------------------------------------------------------------------------------------------------------------------------
+    
+    //Merchant Payment ****************************************************************************************************************************
+    
+    //initier pour debiter le compte client pour Orange Money nouvelle api fonctionnant avec ussd
     @ResponseBody
     @RequestMapping(value = "/orange-money-PaymentOm", method = RequestMethod.POST)
     public HashMap PaymentOm(@RequestBody PojoOm pojo)
@@ -1924,5 +1926,157 @@ public class MobilPayService {
         response = omService.checkPaymentOm(paytoken);
         return response;
     }
+    
+    
+     //Cashin ****************************************************************************************************************************
+    
+    //initier pour crediter le compte client pour Orange Money nouvelle api fonctionnant avec ussd
+    @ResponseBody
+    @RequestMapping(value = "/orange-money-CashinOm", method = RequestMethod.POST)
+    public HashMap CashinOm(@RequestBody PojoOm pojo)
+            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, JSONException {
+        ObjectMapper mapper = new ObjectMapper();
+        String initPayMap = "";
+        OmService omService = new OmService();
+        Partenaire partenaire = new Partenaire();
+        Transtatus transtatus = new Transtatus();
+        Infopayment infopayment = new Infopayment();
+        JSONObject obj = new JSONObject(omService.initPaymentOm().toString());
+
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+
+        //pour la desactivation de verification du certificat  
+        SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
+                .loadTrustMaterial((X509Certificate[] chain, String authType) -> true)
+                .build();
+
+        SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
+        CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
+
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setHttpClient(httpClient);
+
+        RestTemplate restTemplate = new RestTemplate(requestFactory);
+        restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(mapper));
+        System.out.println("----------------------------------------1");
+        if (partenaireRepository.findByOmReference(pojo.getNomProjet()) == null) {
+            partenaire.setOmReference(pojo.getNomProjet().toUpperCase());
+            partenaire.setOrderId(1);
+            System.out.println("----------------------------------------2");
+            partenaireRepository.save(partenaire);
+        }
+        partenaire = partenaireRepository.findByOmReference(pojo.getNomProjet().toUpperCase());
+        System.out.println("----------------------------------------3");
+        HashMap infoPayMap = new HashMap();
+        infoPayMap.put("subscriberMsisdn", pojo.getTelephone());
+        infoPayMap.put("channelUserMsisdn", "691301143");
+        infoPayMap.put("amount", pojo.getAmount());
+        infoPayMap.put("description", "payment test");
+        infoPayMap.put("orderId", "OII_" + partenaire.getOrderId() + partenaire.getOmReference());
+        infoPayMap.put("pin", "2222");
+        infoPayMap.put("payToken", obj.getJSONObject("data").getString("payToken"));
+        infoPayMap.put("notifUrl", "");
+        System.out.println("----------------------------------------4");
+        String url = "https://apiw.orange.cm/omcoreapis/1.0.2/cashin/pay";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + omService.getToken().get("access_token"));
+        headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+        headers.set("X-AUTH-TOKEN", "T01LQUtPVEVMMjAyMTpLQUtPVEVMU0FOREJPWDIwMjE=");
+
+        HttpEntity<HashMap> entity = new HttpEntity<>(infoPayMap, headers);
+        initPayMap = restTemplate.postForObject(url, entity, String.class);
+        System.out.println("----------------------------------------5");
+        JSONObject obj2 = new JSONObject(initPayMap);
+        System.out.println("----------------------------------------6");
+        transtatus.setOrderId("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
+        transtatus.setAmount(pojo.getAmount());
+        transtatus.setPayToken(obj.getJSONObject("data").getString("payToken"));
+        transtatus.setNomprojet(pojo.getNomProjet());
+        transtatus.setPermission("1");
+        transtatus.setCodeclient(pojo.getCodeClient());
+        transtatus.setCodeapi(pojo.getCodeApi());
+        transtatus.setOperateur("ORANGE");
+        transtatus.setTel(pojo.getTelephone());
+        System.out.println("----------------------------------------7");
+        transtatusRepository.save(transtatus);
+
+        infopayment.setCodeAPI(pojo.getCodeApi());
+        infopayment.setCodeClient(pojo.getCodeClient());
+        infopayment.setMontant(pojo.getAmount());
+        infopayment.setMoyenTransaction("ORANGE");
+        infopayment.setDescription("payment test");
+        infopayment.setDate(new Date((System.currentTimeMillis())));
+        infopayment.setProjet(pojo.getNomProjet());
+        infopayment.setTel(pojo.getTelephone());
+        infopayment.setTxnid(obj2.getJSONObject("data").getString("txnid"));
+        infopayment.setPayToken(obj.getJSONObject("data").getString("payToken"));
+        infopayRepository.save(infopayment);
+        System.out.println("----------------------------------------8");
+        partenaire.setOrderId(partenaire.getOrderId() + 1);
+        partenaireRepository.save(partenaire);
+
+        OmService omService1 = new OmService();
+        long startTime = System.currentTimeMillis();
+        HashMap etat = new HashMap();
+        String paytokoent = obj.getJSONObject("data").getString("payToken");
+        while ((System.currentTimeMillis() - startTime) < 130000) {
+            try {
+                Thread.sleep(3000);
+
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            System.out.println(System.currentTimeMillis() - startTime);
+
+            etat = omService.checkPaymentOm(paytokoent);
+            System.out.println(etat);
+            if (etat.get("status").equals(1)) {
+                try {
+                    infopayment.setStatus(etat.get("message").toString());
+                    partenaireRepository.save(partenaire);
+//                    String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge&CodeClient=" + pojo.getCodeClient()odeClient + "&CodeAPI=" + codeApi + "&Projet=" + nomProjet + ""
+//                            + "&Montant=" + amount + "&MoyenTransaction=" + operateur + "&Telephone=" + phonenumber + "&Compte_client=" + compteClient + "";
+//
+//                    ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
+//                    System.out.println(response);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    etat = new HashMap();
+                    etat.put("message", e.getMessage());
+                    return etat;
+                }
+
+                return etat;
+            } else if (etat.get("status").equals(-1)) {
+                infopayment.setStatus(etat.get("message").toString());
+                partenaireRepository.save(partenaire);
+                return etat;
+            } else if (etat.get("status").equals(0)) {
+                infopayment.setStatus(etat.get("message").toString());
+                partenaireRepository.save(partenaire);
+                return etat;
+            }
+        }
+        etat.put("message", "EXPIRED");
+        etat.put("status", 0);
+        infopayment.setStatus("EXPIRED");
+        partenaireRepository.save(partenaire);
+        return etat;
+
+    }
+
+    //Cherker le paiement Orange Money
+    @ResponseBody
+    @RequestMapping(value = "/orange-money-chekCashinOm/{paytoken}", method = RequestMethod.GET)
+    public HashMap chekCashinOm(@PathVariable(value = "paytoken") String paytoken)
+            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, JSONException {
+        HashMap response = new HashMap();
+        OmService omService = new OmService();
+        response = omService.checkCashinOm(paytoken);
+        return response;
+    }
+
 
 }
