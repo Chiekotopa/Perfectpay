@@ -1807,25 +1807,23 @@ public class MobilPayService {
 
         RestTemplate restTemplate = new RestTemplate(requestFactory);
         restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(mapper));
-        System.out.println("----------------------------------------1");
         if (partenaireRepository.findByOmReference(pojo.getNomProjet()) == null) {
             partenaire.setOmReference(pojo.getNomProjet().toUpperCase());
             partenaire.setOrderId(1);
-            System.out.println("----------------------------------------2");
             partenaireRepository.save(partenaire);
         }
         partenaire = partenaireRepository.findByOmReference(pojo.getNomProjet().toUpperCase());
-        System.out.println("----------------------------------------3");
+        
         HashMap infoPayMap = new HashMap();
         infoPayMap.put("subscriberMsisdn", pojo.getTelephone());
         infoPayMap.put("channelUserMsisdn", "691301143");
         infoPayMap.put("amount", pojo.getAmount());
         infoPayMap.put("description", "payment test");
-        infoPayMap.put("orderId", "OII_" + partenaire.getOrderId() + partenaire.getOmReference());
+        infoPayMap.put("orderId", "OP" + partenaire.getOrderId() + partenaire.getOmReference());
         infoPayMap.put("pin", "2222");
         infoPayMap.put("payToken", obj.getJSONObject("data").getString("payToken"));
         infoPayMap.put("notifUrl", "");
-        System.out.println("----------------------------------------4");
+        System.out.println(infoPayMap);
         String url = "https://apiw.orange.cm/omcoreapis/1.0.2/mp/pay";
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + omService.getToken().get("access_token"));
@@ -1834,10 +1832,8 @@ public class MobilPayService {
 
         HttpEntity<HashMap> entity = new HttpEntity<>(infoPayMap, headers);
         initPayMap = restTemplate.postForObject(url, entity, String.class);
-        System.out.println("----------------------------------------5");
         JSONObject obj2 = new JSONObject(initPayMap);
-        System.out.println("----------------------------------------6");
-        transtatus.setOrderId("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
+        transtatus.setOrderId("OP" + partenaire.getOrderId() + partenaire.getOmReference());
         transtatus.setAmount(pojo.getAmount());
         transtatus.setPayToken(obj.getJSONObject("data").getString("payToken"));
         transtatus.setNomprojet(pojo.getNomProjet());
@@ -1846,7 +1842,6 @@ public class MobilPayService {
         transtatus.setCodeapi(pojo.getCodeApi());
         transtatus.setOperateur("ORANGE");
         transtatus.setTel(pojo.getTelephone());
-        System.out.println("----------------------------------------7");
         transtatusRepository.save(transtatus);
 
         infopayment.setCodeAPI(pojo.getCodeApi());
@@ -1860,7 +1855,6 @@ public class MobilPayService {
         infopayment.setTxnid(obj2.getJSONObject("data").getString("txnid"));
         infopayment.setPayToken(obj.getJSONObject("data").getString("payToken"));
         infopayRepository.save(infopayment);
-        System.out.println("----------------------------------------8");
         partenaire.setOrderId(partenaire.getOrderId() + 1);
         partenaireRepository.save(partenaire);
 
@@ -1941,7 +1935,7 @@ public class MobilPayService {
         Partenaire partenaire = new Partenaire();
         Transtatus transtatus = new Transtatus();
         Infopayment infopayment = new Infopayment();
-        JSONObject obj = new JSONObject(omService.initPaymentOm().toString());
+        JSONObject obj = new JSONObject(omService.initCashinOm().toString());
 
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
@@ -1958,37 +1952,33 @@ public class MobilPayService {
 
         RestTemplate restTemplate = new RestTemplate(requestFactory);
         restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(mapper));
-        System.out.println("----------------------------------------1");
+
         if (partenaireRepository.findByOmReference(pojo.getNomProjet()) == null) {
             partenaire.setOmReference(pojo.getNomProjet().toUpperCase());
             partenaire.setOrderId(1);
-            System.out.println("----------------------------------------2");
             partenaireRepository.save(partenaire);
         }
         partenaire = partenaireRepository.findByOmReference(pojo.getNomProjet().toUpperCase());
-        System.out.println("----------------------------------------3");
+      
         HashMap infoPayMap = new HashMap();
         infoPayMap.put("subscriberMsisdn", pojo.getTelephone());
         infoPayMap.put("channelUserMsisdn", "691301143");
         infoPayMap.put("amount", pojo.getAmount());
-        infoPayMap.put("description", "payment test");
-        infoPayMap.put("orderId", "OII_" + partenaire.getOrderId() + partenaire.getOmReference());
+        infoPayMap.put("description", "Cashin test");
+        infoPayMap.put("orderId", "OC" + partenaire.getOrderId() + partenaire.getOmReference());
         infoPayMap.put("pin", "2222");
         infoPayMap.put("payToken", obj.getJSONObject("data").getString("payToken"));
-        infoPayMap.put("notifUrl", "");
-        System.out.println("----------------------------------------4");
+        infoPayMap.put("notifUrl", "http://send.com/test");
+        
         String url = "https://apiw.orange.cm/omcoreapis/1.0.2/cashin/pay";
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + omService.getToken().get("access_token"));
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
         headers.set("X-AUTH-TOKEN", "T01LQUtPVEVMMjAyMTpLQUtPVEVMU0FOREJPWDIwMjE=");
-
-        HttpEntity<HashMap> entity = new HttpEntity<>(infoPayMap, headers);
-        initPayMap = restTemplate.postForObject(url, entity, String.class);
-        System.out.println("----------------------------------------5");
-        JSONObject obj2 = new JSONObject(initPayMap);
-        System.out.println("----------------------------------------6");
-        transtatus.setOrderId("OII_" + partenaire.getOrderId() + partenaire.getOmReference());
+        HttpEntity<HashMap> entity = new HttpEntity<>(infoPayMap, headers); 
+        initPayMap = restTemplate.postForObject(url, entity, String.class);     
+        JSONObject obj2 = new JSONObject(initPayMap);  
+        transtatus.setOrderId("OC" + partenaire.getOrderId() + partenaire.getOmReference());
         transtatus.setAmount(pojo.getAmount());
         transtatus.setPayToken(obj.getJSONObject("data").getString("payToken"));
         transtatus.setNomprojet(pojo.getNomProjet());
@@ -1997,14 +1987,13 @@ public class MobilPayService {
         transtatus.setCodeapi(pojo.getCodeApi());
         transtatus.setOperateur("ORANGE");
         transtatus.setTel(pojo.getTelephone());
-        System.out.println("----------------------------------------7");
         transtatusRepository.save(transtatus);
 
         infopayment.setCodeAPI(pojo.getCodeApi());
         infopayment.setCodeClient(pojo.getCodeClient());
         infopayment.setMontant(pojo.getAmount());
         infopayment.setMoyenTransaction("ORANGE");
-        infopayment.setDescription("payment test");
+        infopayment.setDescription("Cashin test");
         infopayment.setDate(new Date((System.currentTimeMillis())));
         infopayment.setProjet(pojo.getNomProjet());
         infopayment.setTel(pojo.getTelephone());
@@ -2019,6 +2008,7 @@ public class MobilPayService {
         long startTime = System.currentTimeMillis();
         HashMap etat = new HashMap();
         String paytokoent = obj.getJSONObject("data").getString("payToken");
+        
         while ((System.currentTimeMillis() - startTime) < 130000) {
             try {
                 Thread.sleep(3000);
@@ -2029,7 +2019,7 @@ public class MobilPayService {
             }
             System.out.println(System.currentTimeMillis() - startTime);
 
-            etat = omService.checkPaymentOm(paytokoent);
+            etat = omService.checkCashinOm(paytokoent);
             System.out.println(etat);
             if (etat.get("status").equals(1)) {
                 try {

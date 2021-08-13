@@ -230,7 +230,7 @@ public class OmService {
             RestTemplate restTemplate = new RestTemplate(requestFactory);
             restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(mapper));
             InfoToken infoToken = new InfoToken();
-            String url = "https://apiw.orange.cm/omcoreapis/1.0.2/cashin/paymentstatus" + pay_token;
+            String url = "https://apiw.orange.cm/omcoreapis/1.0.2/cashin/paymentstatus/" + pay_token;
             HttpHeaders headers = new HttpHeaders();
             headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + getToken().get("access_token"));
             headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
