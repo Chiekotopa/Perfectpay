@@ -82,7 +82,8 @@ public class OmService {
     public HashMap initPaymentOm() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         ObjectMapper mapper = new ObjectMapper();
         HashMap initPayMap = new HashMap();
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        try {
+             mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
         ///pour la desactivation de verification du certificat  
         SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
@@ -105,8 +106,13 @@ public class OmService {
         headers.set("X-AUTH-TOKEN", "T01LQUtPVEVMMjAyMTpLQUtPVEVMU0FOREJPWDIwMjE=");
         HttpEntity<InfoToken> entity = new HttpEntity<>(infoToken, headers);
         initPayMap = restTemplate.postForObject(url, entity, HashMap.class);
-
         return initPayMap;
+        } catch (Exception e) {
+           initPayMap.put("Message", e.getMessage());      
+         return initPayMap;
+        }
+       
+        
 
     }
 
@@ -243,7 +249,7 @@ public class OmService {
                 response.put("status", 1);
             }
             if (obj.getJSONObject("data").getString("status").equals("FAILED")) {
-                response.put("message", "CANCELLED");
+                response.put("message", "FAILED");
                 response.put("status", -2);
             }
 

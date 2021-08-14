@@ -11,7 +11,7 @@ package com.payment.pay.entities;
  */
 public class PojoOm {
     
-    String telephone,amount,codeClient,codeApi,nomProjet;
+    String telephone,amount,codeClient,codeApi,nomProjet,compteClient;
 
     public String getTelephone() {
         return telephone;
@@ -51,6 +51,14 @@ public class PojoOm {
 
     public void setNomProjet(String nomProjet) {
         this.nomProjet = nomProjet;
+    }
+
+    public String getCompteClient() {
+        return compteClient;
+    }
+
+    public void setCompteClient(String compteClient) {
+        this.compteClient = compteClient;
     }
 
    
