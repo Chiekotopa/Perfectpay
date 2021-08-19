@@ -173,6 +173,8 @@ public class MobilPayService {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
+    @ResponseBody
+    @RequestMapping(value = "/getToken", method = RequestMethod.GET)
     public Token getToken() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
