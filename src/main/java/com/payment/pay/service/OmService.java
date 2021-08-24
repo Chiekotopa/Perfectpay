@@ -215,7 +215,7 @@ public class OmService {
     }
     
 
-    //obtenir le statut du payment a l'aide du paytoken
+    //Obtenir le statut du payment a l'aide du paytoken
     public HashMap checkCashinOm(String pay_token) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, JSONException {
         ObjectMapper mapper = new ObjectMapper();
         HashMap response = new HashMap();

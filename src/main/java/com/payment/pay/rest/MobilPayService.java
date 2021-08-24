@@ -1840,7 +1840,7 @@ public class MobilPayService {
             infoPayMap.put("subscriberMsisdn", pojo.getTelephone());
             infoPayMap.put("channelUserMsisdn", "691301143");
             infoPayMap.put("amount", pojo.getAmount());
-            infoPayMap.put("description", "payment test");
+            infoPayMap.put("description", "Recharge du compte PerfectPay");
             infoPayMap.put("orderId", "OP" + partenaire.getOrderId() + partenaire.getOmReference());
             infoPayMap.put("pin", "2222");
             infoPayMap.put("payToken", obj.getJSONObject("data").getString("payToken"));
@@ -1912,19 +1912,34 @@ public class MobilPayService {
                         etat.put("message", e.getMessage());
                         return etat;
                     }
-
+                    infopayment.setStatus(etat.get("message").toString());
+                    partenaireRepository.save(partenaire);
+                    etat = new HashMap();
+                    etat.put("message", "Opération effectuée avec succès");
+                    etat.put("status", 1);
                     return etat;
+
                 } else if (etat.get("status").equals(-1)) {
                     infopayment.setStatus(etat.get("message").toString());
                     partenaireRepository.save(partenaire);
+                    etat = new HashMap();
+                    etat.put("message", "Opération annulée");
+                    etat.put("status", -1);
                     return etat;
+
                 } else if (etat.get("status").equals(0)) {
                     infopayment.setStatus(etat.get("message").toString());
                     partenaireRepository.save(partenaire);
+                    etat = new HashMap();
+                    etat.put("message", "Échec de l'opération délai expiré");
+                    etat.put("status", 0);
                     return etat;
                 } else if (etat.get("status").equals(-2)) {
                     infopayment.setStatus(etat.get("message").toString());
                     partenaireRepository.save(partenaire);
+                    etat = new HashMap();
+                    etat.put("message", "Échec de l'opération");
+                    etat.put("status", -2);
                     return etat;
                 }
 
@@ -1933,6 +1948,7 @@ public class MobilPayService {
             HashMap etat = new HashMap();
             etat.put("message", "Numéro de téléphone incorrect");
             etat.put("status", -3);
+            return etat;
         }
 
         HashMap etat = new HashMap();
@@ -1940,6 +1956,9 @@ public class MobilPayService {
         etat.put("status", 0);
         infopayment.setStatus("EXPIRED");
         partenaireRepository.save(partenaire);
+        etat = new HashMap();
+        etat.put("message", "Échec de l'opération délai expiré");
+        etat.put("status", 0);
         return etat;
 
     }
@@ -1999,7 +2018,7 @@ public class MobilPayService {
             infoPayMap.put("subscriberMsisdn", pojo.getTelephone());
             infoPayMap.put("channelUserMsisdn", "691301143");
             infoPayMap.put("amount", pojo.getAmount());
-            infoPayMap.put("description", "payment test");
+            infoPayMap.put("description", "Paiement Marchand");
             infoPayMap.put("orderId", "OP" + partenaire.getOrderId() + partenaire.getOmReference());
             infoPayMap.put("pin", "2222");
             infoPayMap.put("payToken", obj.getJSONObject("data").getString("payToken"));
@@ -2069,19 +2088,33 @@ public class MobilPayService {
                         etat.put("message", e.getMessage());
                         return etat;
                     }
-
+                    infopayment.setStatus(etat.get("message").toString());
+                    partenaireRepository.save(partenaire);
+                    etat = new HashMap();
+                    etat.put("message", "Opération effectuée avec succès");
+                    etat.put("status", 1);
                     return etat;
+
                 } else if (etat.get("status").equals(-1)) {
                     infopayment.setStatus(etat.get("message").toString());
                     partenaireRepository.save(partenaire);
+                    etat = new HashMap();
+                    etat.put("message", "Opération annulée");
+                    etat.put("status", -1);
                     return etat;
                 } else if (etat.get("status").equals(0)) {
                     infopayment.setStatus(etat.get("message").toString());
                     partenaireRepository.save(partenaire);
+                    etat = new HashMap();
+                    etat.put("message", "Échec de l'opération délai expiré");
+                    etat.put("status", 0);
                     return etat;
                 } else if (etat.get("status").equals(-2)) {
                     infopayment.setStatus(etat.get("message").toString());
                     partenaireRepository.save(partenaire);
+                    etat = new HashMap();
+                    etat.put("message", "Échec de l'opération");
+                    etat.put("status", -2);
                     return etat;
                 }
 
@@ -2099,6 +2132,9 @@ public class MobilPayService {
         etat.put("status", 0);
         infopayment.setStatus("EXPIRED");
         partenaireRepository.save(partenaire);
+        etat = new HashMap();
+        etat.put("message", "Échec de l'opération délai expiré");
+        etat.put("status", 0);
         return etat;
 
     }
@@ -2155,7 +2191,7 @@ public class MobilPayService {
         infoPayMap.put("subscriberMsisdn", pojo.getTelephone());
         infoPayMap.put("channelUserMsisdn", "691301143");
         infoPayMap.put("amount", pojo.getAmount());
-        infoPayMap.put("description", "Cashin test");
+        infoPayMap.put("description", "Dépôt dans le compte du client Orange Money");
         infoPayMap.put("orderId", "OC" + partenaire.getOrderId() + partenaire.getOmReference());
         infoPayMap.put("pin", "2222");
         infoPayMap.put("payToken", obj.getJSONObject("data").getString("payToken"));
@@ -2195,7 +2231,6 @@ public class MobilPayService {
         partenaire.setOrderId(partenaire.getOrderId() + 1);
         partenaireRepository.save(partenaire);
 
-        OmService omService1 = new OmService();
         long startTime = System.currentTimeMillis();
         HashMap etat = new HashMap();
         String paytokoent = obj.getJSONObject("data").getString("payToken");
@@ -2216,11 +2251,7 @@ public class MobilPayService {
                 try {
                     infopayment.setStatus(etat.get("message").toString());
                     partenaireRepository.save(partenaire);
-//                    String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge&CodeClient=" + pojo.getCodeClient()odeClient + "&CodeAPI=" + codeApi + "&Projet=" + nomProjet + ""
-//                            + "&Montant=" + amount + "&MoyenTransaction=" + operateur + "&Telephone=" + phonenumber + "&Compte_client=" + compteClient + "";
-//
-//                    ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
-//                    System.out.println(response);
+//                   
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -2228,19 +2259,33 @@ public class MobilPayService {
                     etat.put("message", e.getMessage());
                     return etat;
                 }
-
+                etat = new HashMap();
+                etat.put("message", "Opération effectuée avec succès");
+                etat.put("status", 1);
                 return etat;
+
             } else if (etat.get("status").equals(-1)) {
                 infopayment.setStatus(etat.get("message").toString());
                 partenaireRepository.save(partenaire);
+                etat = new HashMap();
+                etat.put("message", "Opération annulée");
+                etat.put("status", -1);
                 return etat;
+
             } else if (etat.get("status").equals(0)) {
                 infopayment.setStatus(etat.get("message").toString());
                 partenaireRepository.save(partenaire);
+                etat = new HashMap();
+                etat.put("message", "Échec de l'opération délai expiré");
+                etat.put("status", 0);
                 return etat;
+
             } else if (etat.get("status").equals(-2)) {
                 infopayment.setStatus(etat.get("message").toString());
                 partenaireRepository.save(partenaire);
+                etat = new HashMap();
+                etat.put("message", "Échec de l'opération");
+                etat.put("status", -2);
                 return etat;
             }
         }
@@ -2248,11 +2293,14 @@ public class MobilPayService {
         etat.put("status", 0);
         infopayment.setStatus("EXPIRED");
         partenaireRepository.save(partenaire);
+        etat = new HashMap();
+        etat.put("message", "Échec de l'opération délai expiré");
+        etat.put("status", 0);
         return etat;
 
     }
 
-    //Cherker le paiement Orange Money
+    //Cherker le CashinOm Orange Money
     @ResponseBody
     @RequestMapping(value = "/orange-money-chekCashinOm/{paytoken}", method = RequestMethod.GET)
     public HashMap chekCashinOm(@PathVariable(value = "paytoken") String paytoken)
