@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Success Paiement</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="css/bootstrap.css" rel="stylesheet" type="text/css" 
+              th:href="@{/css/bootstrap.css}"/>
+
+        <link href="css/cssp.css" rel="stylesheet" type="text/css"
+              th:href="@{/css/cssp.css}" />
+    </head>
+    <body th:style="'background-image:url(' + @{/images/logoPerfectpay.png} + '); background-repeat: no-repeat, repeat; background-size: cover;'">
+        <div > 
+            <div style="margin-top: 100px;">
+                <h3 style="text-align: center"><strong>Paiement effectué avec succès</strong></h3>
+                <p style="text-align: center"><strong>Veuillez fermer cette page et retourner à l'application</strong></p>
+            </div>
+
+            <!-- <img style="align-content: center" th:src="@{/images/logoPerfectpay.png}"/>-->
+        </div>
+
+    </body>
+</html>

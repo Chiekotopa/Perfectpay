@@ -112,6 +112,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.bind.annotation.GetMapping;
 
 /**
  *
@@ -981,23 +982,23 @@ public class MobilPayService {
     public HashMap paypalPayment(@RequestBody InfoPayPapal infoPayPapal) {
         HashMap<String, String> lienpay = new HashMap<String, String>();
 
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
-
-            lienpay.put("redirect", "-2");
-            return lienpay;
-        }
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
-
-            lienpay.put("redirect", "-3");
-            return lienpay;
-        }
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
-
-            lienpay.put("redirect", "-4");
-            return lienpay;
-        }
-        String cancelUrl = infoPayPapal.getUrl_cancel();
-        String successUrl = "http://154.72.148.105:8081/Perfectpay/rest/api/paiement/ConfirmPayment?url_return=" + infoPayPapal.getUrl_return()
+//       HashMap mapCheckClient = verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet());
+//            if (mapCheckClient.get("status").equals(4)) {
+//
+//                return mapCheckClient;
+//            }
+//
+//            if (mapCheckClient.get("status").equals(5)) {
+//
+//                return mapCheckClient;
+//            }
+//            if (mapCheckClient.get("status").equals(6)) {
+//
+//                return mapCheckClient;
+//            }
+        infoPayPapal.setUrl_return("http://localhost:8081/Perfectpay/rest/api/paiement/getSuccess");
+        String cancelUrl = "http://localhost:8081/Perfectpay/rest/api/paiement/getCancel";
+        String successUrl = "http://localhost:8081/Perfectpay/rest/api/paiement/ConfirmPayment?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
                 + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount()
                 + "&telephone=" + infoPayPapal.getPhone() + "";
@@ -1048,10 +1049,10 @@ public class MobilPayService {
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(codeApi);
-                String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet
-                        + "&Montant=" + amount * 540.18 + "&MoyenTransaction=Paypal&Telephone=" + telephone + "";
-                ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
-                System.out.println(response);
+//                String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet
+//                        + "&Montant=" + amount * 540.18 + "&MoyenTransaction=Paypal&Telephone=" + telephone + "";
+//                ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
+//                System.out.println(response);
                 return "redirect:" + url_return;
 
             }
@@ -1067,20 +1068,19 @@ public class MobilPayService {
     public HashMap pay(@RequestBody InfoPayPapal infoPayPapal) {
         HashMap<String, String> lienpay = new HashMap<String, String>();
 
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
+        HashMap mapCheckClient = verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet());
+        if (mapCheckClient.get("status").equals(4)) {
 
-            lienpay.put("redirect", "-2");
-            return lienpay;
+            return mapCheckClient;
         }
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
 
-            lienpay.put("redirect", "-3");
-            return lienpay;
+        if (mapCheckClient.get("status").equals(5)) {
+
+            return mapCheckClient;
         }
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
+        if (mapCheckClient.get("status").equals(6)) {
 
-            lienpay.put("redirect", "-4");
-            return lienpay;
+            return mapCheckClient;
         }
         String cancelUrl = infoPayPapal.getUrl_cancel();
         String successUrl = "http://154.72.148.105:8081/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
@@ -1146,26 +1146,39 @@ public class MobilPayService {
         return "redirect:" + cancel_url;
     }
 
+    //rediction Paypal**********************************************************
+    @GetMapping("getSuccess")
+    public String getSuccess() {
+
+        return "success";
+    }
+    
+    @GetMapping("getCancel")
+    public String getCancel()
+            {
+        
+        return "cancel";
+    }
+
     //******************Paypal for GEDOMED   
     @ResponseBody
     @RequestMapping(method = RequestMethod.POST, value = "paypalGedomed/{index}")
     public HashMap payGedomed(@RequestBody InfoPayPapal infoPayPapal, @PathVariable(value = "index") String index) {
         HashMap<String, String> lienpay = new HashMap<String, String>();
 
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-2")) {
+        HashMap mapCheckClient = verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet());
+        if (mapCheckClient.get("status").equals(4)) {
 
-            lienpay.put("redirect", "-2");
-            return lienpay;
+            return mapCheckClient;
         }
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-3")) {
 
-            lienpay.put("redirect", "-3");
-            return lienpay;
+        if (mapCheckClient.get("status").equals(5)) {
+
+            return mapCheckClient;
         }
-        if (verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet()).equals("-4")) {
+        if (mapCheckClient.get("status").equals(6)) {
 
-            lienpay.put("redirect", "-4");
-            return lienpay;
+            return mapCheckClient;
         }
         String cancelUrl = infoPayPapal.getUrl_cancel();
         String successUrl = "http://154.72.148.105:8081/Perfectpay/rest/api/paiement/ConfirmPayGedomed?url_return=" + infoPayPapal.getUrl_return()
@@ -2163,132 +2176,140 @@ public class MobilPayService {
         Transtatus transtatus = new Transtatus();
         Infopayment infopayment = new Infopayment();
         JSONObject obj = new JSONObject(omService.initCashinOm().toString());
+        try {
+            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+            //pour la desactivation de verification du certificat  
+            SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
+                    .loadTrustMaterial((X509Certificate[] chain, String authType) -> true)
+                    .build();
 
-        //pour la desactivation de verification du certificat  
-        SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-                .loadTrustMaterial((X509Certificate[] chain, String authType) -> true)
-                .build();
+            SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
+            CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
 
-        SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
-        CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setHttpClient(httpClient);
 
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(httpClient);
+            RestTemplate restTemplate = new RestTemplate(requestFactory);
+            restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(mapper));
 
-        RestTemplate restTemplate = new RestTemplate(requestFactory);
-        restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(mapper));
-
-        if (partenaireRepository.findByOmReference(pojo.getNomProjet()) == null) {
-            partenaire.setOmReference(pojo.getNomProjet().toUpperCase());
-            partenaire.setOrderId(1);
-            partenaireRepository.save(partenaire);
-        }
-        partenaire = partenaireRepository.findByOmReference(pojo.getNomProjet().toUpperCase());
-
-        HashMap infoPayMap = new HashMap();
-        infoPayMap.put("subscriberMsisdn", pojo.getTelephone());
-        infoPayMap.put("channelUserMsisdn", "691301143");
-        infoPayMap.put("amount", pojo.getAmount());
-        infoPayMap.put("description", "Dépôt dans le compte du client Orange Money");
-        infoPayMap.put("orderId", "OC" + partenaire.getOrderId() + partenaire.getOmReference());
-        infoPayMap.put("pin", "2222");
-        infoPayMap.put("payToken", obj.getJSONObject("data").getString("payToken"));
-        infoPayMap.put("notifUrl", "http://send.com/test");
-
-        String url = "https://apiw.orange.cm/omcoreapis/1.0.2/cashin/pay";
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + omService.getToken().get("access_token"));
-        headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
-        headers.set("X-AUTH-TOKEN", "T01LQUtPVEVMMjAyMTpLQUtPVEVMU0FOREJPWDIwMjE=");
-        HttpEntity<HashMap> entity = new HttpEntity<>(infoPayMap, headers);
-        initPayMap = restTemplate.postForObject(url, entity, String.class);
-        JSONObject obj2 = new JSONObject(initPayMap);
-        transtatus.setOrderId("OC" + partenaire.getOrderId() + partenaire.getOmReference());
-        transtatus.setAmount(pojo.getAmount());
-        transtatus.setPayToken(obj.getJSONObject("data").getString("payToken"));
-        transtatus.setNomprojet(pojo.getNomProjet());
-        transtatus.setPermission("1");
-        transtatus.setCodeclient(pojo.getCodeClient());
-        transtatus.setCodeapi(pojo.getCodeApi());
-        transtatus.setOperateur("ORANGE");
-        transtatus.setTel(pojo.getTelephone());
-        transtatusRepository.save(transtatus);
-
-        infopayment.setCodeAPI(pojo.getCodeApi());
-        infopayment.setCodeClient(pojo.getCodeClient());
-        infopayment.setMontant(pojo.getAmount());
-        infopayment.setMoyenTransaction("ORANGE");
-        infopayment.setDescription("Cashin test");
-        infopayment.setDate(new Date((System.currentTimeMillis())));
-        infopayment.setProjet(pojo.getNomProjet());
-        infopayment.setTel(pojo.getTelephone());
-        infopayment.setTxnid(obj2.getJSONObject("data").getString("txnid"));
-        infopayment.setPayToken(obj.getJSONObject("data").getString("payToken"));
-        infopayRepository.save(infopayment);
-        System.out.println("----------------------------------------8");
-        partenaire.setOrderId(partenaire.getOrderId() + 1);
-        partenaireRepository.save(partenaire);
-
-        long startTime = System.currentTimeMillis();
-        HashMap etat = new HashMap();
-        String paytokoent = obj.getJSONObject("data").getString("payToken");
-
-        while ((System.currentTimeMillis() - startTime) < 130000) {
-            try {
-                Thread.sleep(3000);
-
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            if (partenaireRepository.findByOmReference(pojo.getNomProjet()) == null) {
+                partenaire.setOmReference(pojo.getNomProjet().toUpperCase());
+                partenaire.setOrderId(1);
+                partenaireRepository.save(partenaire);
             }
-            System.out.println(System.currentTimeMillis() - startTime);
+            partenaire = partenaireRepository.findByOmReference(pojo.getNomProjet().toUpperCase());
 
-            etat = omService.checkCashinOm(paytokoent);
-            System.out.println(etat);
-            if (etat.get("status").equals(1)) {
+            HashMap infoPayMap = new HashMap();
+            infoPayMap.put("subscriberMsisdn", pojo.getTelephone());
+            infoPayMap.put("channelUserMsisdn", "691301143");
+            infoPayMap.put("amount", pojo.getAmount());
+            infoPayMap.put("description", "Dépôt dans le compte du client Orange Money");
+            infoPayMap.put("orderId", "OC" + partenaire.getOrderId() + partenaire.getOmReference());
+            infoPayMap.put("pin", "2222");
+            infoPayMap.put("payToken", obj.getJSONObject("data").getString("payToken"));
+            infoPayMap.put("notifUrl", "http://send.com/test");
+
+            String url = "https://apiw.orange.cm/omcoreapis/1.0.2/cashin/pay";
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + omService.getToken().get("access_token"));
+            headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+            headers.set("X-AUTH-TOKEN", "T01LQUtPVEVMMjAyMTpLQUtPVEVMU0FOREJPWDIwMjE=");
+            HttpEntity<HashMap> entity = new HttpEntity<>(infoPayMap, headers);
+            initPayMap = restTemplate.postForObject(url, entity, String.class);
+            JSONObject obj2 = new JSONObject(initPayMap);
+            transtatus.setOrderId("OC" + partenaire.getOrderId() + partenaire.getOmReference());
+            transtatus.setAmount(pojo.getAmount());
+            transtatus.setPayToken(obj.getJSONObject("data").getString("payToken"));
+            transtatus.setNomprojet(pojo.getNomProjet());
+            transtatus.setPermission("1");
+            transtatus.setCodeclient(pojo.getCodeClient());
+            transtatus.setCodeapi(pojo.getCodeApi());
+            transtatus.setOperateur("ORANGE");
+            transtatus.setTel(pojo.getTelephone());
+            transtatusRepository.save(transtatus);
+
+            infopayment.setCodeAPI(pojo.getCodeApi());
+            infopayment.setCodeClient(pojo.getCodeClient());
+            infopayment.setMontant(pojo.getAmount());
+            infopayment.setMoyenTransaction("ORANGE");
+            infopayment.setDescription("Cashin test");
+            infopayment.setDate(new Date((System.currentTimeMillis())));
+            infopayment.setProjet(pojo.getNomProjet());
+            infopayment.setTel(pojo.getTelephone());
+            infopayment.setTxnid(obj2.getJSONObject("data").getString("txnid"));
+            infopayment.setPayToken(obj.getJSONObject("data").getString("payToken"));
+            infopayRepository.save(infopayment);
+            System.out.println("----------------------------------------8");
+            partenaire.setOrderId(partenaire.getOrderId() + 1);
+            partenaireRepository.save(partenaire);
+
+            long startTime = System.currentTimeMillis();
+            HashMap etat = new HashMap();
+            String paytokoent = obj.getJSONObject("data").getString("payToken");
+
+            while ((System.currentTimeMillis() - startTime) < 130000) {
                 try {
-                    infopayment.setStatus(etat.get("message").toString());
-                    partenaireRepository.save(partenaire);
+                    Thread.sleep(3000);
+
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                System.out.println(System.currentTimeMillis() - startTime);
+
+                etat = omService.checkCashinOm(paytokoent);
+                System.out.println(etat);
+                if (etat.get("status").equals(1)) {
+                    try {
+                        infopayment.setStatus(etat.get("message").toString());
+                        partenaireRepository.save(partenaire);
 //                   
 
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        etat = new HashMap();
+                        etat.put("message", e.getMessage());
+                        return etat;
+                    }
                     etat = new HashMap();
-                    etat.put("message", e.getMessage());
+                    etat.put("message", "Opération effectuée avec succès");
+                    etat.put("status", 1);
+                    return etat;
+
+                } else if (etat.get("status").equals(-1)) {
+                    infopayment.setStatus(etat.get("message").toString());
+                    partenaireRepository.save(partenaire);
+                    etat = new HashMap();
+                    etat.put("message", "Opération annulée");
+                    etat.put("status", -1);
+                    return etat;
+
+                } else if (etat.get("status").equals(0)) {
+                    infopayment.setStatus(etat.get("message").toString());
+                    partenaireRepository.save(partenaire);
+                    etat = new HashMap();
+                    etat.put("message", "Échec de l'opération délai expiré");
+                    etat.put("status", 0);
+                    return etat;
+
+                } else if (etat.get("status").equals(-2)) {
+                    infopayment.setStatus(etat.get("message").toString());
+                    partenaireRepository.save(partenaire);
+                    etat = new HashMap();
+                    etat.put("message", "Échec de l'opération");
+                    etat.put("status", -2);
                     return etat;
                 }
-                etat = new HashMap();
-                etat.put("message", "Opération effectuée avec succès");
-                etat.put("status", 1);
-                return etat;
-
-            } else if (etat.get("status").equals(-1)) {
-                infopayment.setStatus(etat.get("message").toString());
-                partenaireRepository.save(partenaire);
-                etat = new HashMap();
-                etat.put("message", "Opération annulée");
-                etat.put("status", -1);
-                return etat;
-
-            } else if (etat.get("status").equals(0)) {
-                infopayment.setStatus(etat.get("message").toString());
-                partenaireRepository.save(partenaire);
-                etat = new HashMap();
-                etat.put("message", "Échec de l'opération délai expiré");
-                etat.put("status", 0);
-                return etat;
-
-            } else if (etat.get("status").equals(-2)) {
-                infopayment.setStatus(etat.get("message").toString());
-                partenaireRepository.save(partenaire);
-                etat = new HashMap();
-                etat.put("message", "Échec de l'opération");
-                etat.put("status", -2);
-                return etat;
             }
+        } catch (Exception e) {
+            HashMap etat = new HashMap();
+            etat.put("message", "Numéro de téléphone incorrect");
+            etat.put("status", -3);
+            return etat;
         }
+
+        HashMap etat = new HashMap();
         etat.put("message", "EXPIRED");
         etat.put("status", 0);
         infopayment.setStatus("EXPIRED");
