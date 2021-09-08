@@ -169,7 +169,8 @@ public class MobilPayService {
     APIContext aPIContext;
 
     AllServicesStub stub;
-
+    
+   
     private RequestHeader requestHeader;
 
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -982,20 +983,20 @@ public class MobilPayService {
     public HashMap paypalPayment(@RequestBody InfoPayPapal infoPayPapal) {
         HashMap<String, String> lienpay = new HashMap<String, String>();
 
-//       HashMap mapCheckClient = verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet());
-//            if (mapCheckClient.get("status").equals(4)) {
-//
-//                return mapCheckClient;
-//            }
-//
-//            if (mapCheckClient.get("status").equals(5)) {
-//
-//                return mapCheckClient;
-//            }
-//            if (mapCheckClient.get("status").equals(6)) {
-//
-//                return mapCheckClient;
-//            }
+       HashMap mapCheckClient = verifClient(infoPayPapal.getCodeClient(), infoPayPapal.getCodeApi(), infoPayPapal.getProjet());
+            if (mapCheckClient.get("status").equals(4)) {
+
+                return mapCheckClient;
+            }
+
+            if (mapCheckClient.get("status").equals(5)) {
+
+                return mapCheckClient;
+            }
+            if (mapCheckClient.get("status").equals(6)) {
+
+                return mapCheckClient;
+            }
         infoPayPapal.setUrl_return("http://localhost:8081/Perfectpay/rest/api/paiement/getSuccess");
         String cancelUrl = "http://localhost:8081/Perfectpay/rest/api/paiement/getCancel";
         String successUrl = "http://localhost:8081/Perfectpay/rest/api/paiement/ConfirmPayment?url_return=" + infoPayPapal.getUrl_return()
@@ -1034,7 +1035,6 @@ public class MobilPayService {
             @RequestParam("compteClient") String compteClient, @RequestParam("cancel_url") String cancel_url,
             @RequestParam("paymentId") String paymentId,
             @RequestParam("PayerID") String payerId, @RequestParam("amount") Double amount, @RequestParam("telephone") String telephone) {
-        InfoPayOrange payOrange = new InfoPayOrange();
         RestTemplate restTemplate = new RestTemplate();
         InfoPayPapal infoPayPapal = new InfoPayPapal();
         HttpHeaders headers = new HttpHeaders();
@@ -1045,14 +1045,14 @@ public class MobilPayService {
 
             Payment payment = paypalService.executePayment(paymentId, payerId);
             if (payment.getState().equals("approved")) {
-
+                double amoutconvert=amount*553;    
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(codeApi);
-//                String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet
-//                        + "&Montant=" + amount * 540.18 + "&MoyenTransaction=Paypal&Telephone=" + telephone + "";
-//                ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
-//                System.out.println(response);
+                String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet
+                        + "&Montant=" + amoutconvert + "&MoyenTransaction=Paypal&Telephone=" + telephone + "";
+                ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
+                System.out.println(response);
                 return "redirect:" + url_return;
 
             }
@@ -1082,7 +1082,8 @@ public class MobilPayService {
 
             return mapCheckClient;
         }
-        String cancelUrl = infoPayPapal.getUrl_cancel();
+        infoPayPapal.setUrl_return("http://localhost:8081/Perfectpay/rest/api/paiement/getSuccess");
+        String cancelUrl = "http://localhost:8081/Perfectpay/rest/api/paiement/getCancel";
         String successUrl = "http://154.72.148.105:8081/Perfectpay/rest/api/paiement/ConfirmPay?url_return=" + infoPayPapal.getUrl_return()
                 + "&codeClient=" + infoPayPapal.getCodeClient() + "&codeApi=" + infoPayPapal.getCodeApi() + "&Projet=" + infoPayPapal.getProjet()
                 + "&moyenTransaction=" + infoPayPapal.getMoyenTransaction() + "&compteClient=" + infoPayPapal.getCompteClient() + "&cancel_url=" + infoPayPapal.getUrl_cancel() + "&amount=" + infoPayPapal.getAmount() + "";
@@ -1116,7 +1117,7 @@ public class MobilPayService {
     public String successPay(@RequestParam("url_return") String url_return, @RequestParam("codeClient") String codeClient,
             @RequestParam("codeApi") String codeApi, @RequestParam("Projet") String Projet, @RequestParam("moyenTransaction") String moyenTransaction,
             @RequestParam("compteClient") String compteClient, @RequestParam("cancel_url") String cancel_url,
-            @RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId, @RequestParam("amount") Double amount) {
+            @RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId, @RequestParam("amount") double amount) {
         InfoPayOrange payOrange = new InfoPayOrange();
         RestTemplate restTemplate = new RestTemplate();
         InfoPayPapal infoPayPapal = new InfoPayPapal();
@@ -1128,12 +1129,12 @@ public class MobilPayService {
 
             Payment payment = paypalService.executePayment(paymentId, payerId);
             if (payment.getState().equals("approved")) {
-
+                double amoutconvert=amount*553;    
                 System.out.print(payment.getState());
                 System.out.print("idpayer :" + payerId + " paymentId" + paymentId);
                 System.out.print(codeApi);
                 String urls = "https://api.kakotel.com/api-perfectpay.php?action=create_transaction_recharge_paypal&CodeClient=" + codeClient + "&CodeAPI=" + codeApi + "&Projet=" + Projet + ""
-                        + "&Montant=" + amount * 540.18 + "&MoyenTransaction=" + moyenTransaction + "&Compte_client=" + compteClient + "";
+                        + "&Montant=" + amoutconvert + "&MoyenTransaction=" + moyenTransaction + "&Compte_client=" + compteClient + "";
 
                 ResponseEntity<String> response = restTemplate.exchange(urls, HttpMethod.GET, entity, String.class);
                 System.out.println(response);
@@ -1155,8 +1156,7 @@ public class MobilPayService {
     
     @GetMapping("getCancel")
     public String getCancel()
-            {
-        
+            {        
         return "cancel";
     }
 
@@ -2330,6 +2330,54 @@ public class MobilPayService {
         OmService omService = new OmService();
         response = omService.checkCashinOm(paytoken);
         return response;
+    }
+    
+    
+    @ResponseBody
+    public String getOnlineDevises(String devise){
+        String resp="";
+        Devisemonaies devisemonaies=deviseMonaieRepository.getOne(1);
+        String CURRENCY_LAYER_ACCESS_KEY=devisemonaies.getKeydevise();
+        try {
+          
+    	String source = null;
+        String format= "1";
+   	    String currencies = null ;
+		 if(devise.equals("DOLLAR")) {
+			 source = "USD"; currencies = "EUR,XOF,CAD,GBP,NGN,AED,CNY,ZAR";
+		 }
+  		 if(devise.equals("EURO")) {
+  			source = "EUR"; currencies = "USD,XOF,CAD,GBP,NGN,AED,CNY,ZAR";
+		 } 
+  		 if(devise.equals("FCFA")){
+  			source = "XOF"; currencies = "USD,EUR,CAD,GBP,NGN,AED,CNY,ZAR";
+		 }  
+  		 if(devise.equals("CAD")){
+  			source = "CAD"; currencies = "USD,EUR,XOF,GBP,NGN,AED,CNY,ZAR";
+		 }  
+  		 if(devise.equals("YUAN")){
+  			source = "CNY"; currencies = "USD,EUR,XOF,CAD,GBP,NGN,AED,ZAR";
+		 }  
+  		 if(devise.equals("Livre sterling")){
+  			source = "GBP"; currencies = "USD,EUR,XOF,CAD,NGN,AED,CNY,ZAR";
+		 }  
+  		 if(devise.equals("DIRHAM")){
+  			source = "AED"; currencies = "USD,EUR,XOF,CAD,GBP,NGN,CNY,ZAR";
+		 }  
+  		 if(devise.equals("RAND")){
+  			source = "ZAR"; currencies = "USD,EUR,XOF,CAD,GBP,NGN,AED,CNY";
+		 }  
+  		 if(devise.equals("NAIRA")){
+  			source = "NGN"; currencies = "USD,EUR,XOF,CAD,GBP,AED,CNY,ZAR";
+		 }  
+                 
+                String url = "https://apilayer.net/api/live?access_key="+CURRENCY_LAYER_ACCESS_KEY+"&currencies="+currencies+"&source="+source+"&format="+format;
+            
+         return resp;
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+        
     }
 
 }
